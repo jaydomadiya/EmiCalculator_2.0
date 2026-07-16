@@ -29,9 +29,12 @@ import CustomRateScreen from './src/screens/CustomRateScreen';
 import HomeScreen, { ConverterTool } from './src/screens/HomeScreen';
 import LanguageScreen from './src/screens/LanguageScreen';
 import LoanCalculatorScreen from './src/screens/LoanCalculatorScreen';
+import LoanComparisonScreen from './src/screens/LoanComparisonScreen';
+import LoanComparisonResultScreen from './src/screens/LoanComparisonResultScreen';
 import LoanResultScreen from './src/screens/LoanResultScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import { THEME } from './src/theme/colors';
+import { LoanComparisonResult } from './src/types/loanComparison';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,7 +50,9 @@ type Screen =
   | 'currencyConverter'
   | 'cryptoConverter'
   | 'customRate'
-  | 'currencyList';
+  | 'currencyList'
+  | 'loanComparison'
+  | 'loanComparisonResult';
 
 function buildFormForLoanType(loanTypeKey: string): LoanFormState {
   const loanType = getLoanType(loanTypeKey);
@@ -95,6 +100,8 @@ function App() {
   const [screen, setScreen] = useState<Screen>('loading');
   const [loanForm, setLoanForm] = useState<LoanFormState | null>(null);
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
+  const [loanComparisonResult, setLoanComparisonResult] =
+    useState<LoanComparisonResult | null>(null);
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -120,11 +127,15 @@ function App() {
         case 'result':
           setScreen('calculator');
           return true;
+        case 'loanComparisonResult':
+          setScreen('loanComparison');
+          return true;
         case 'calculator':
         case 'currencyConverter':
         case 'cryptoConverter':
         case 'customRate':
         case 'currencyList':
+        case 'loanComparison':
           setScreen('home');
           return true;
         default:
@@ -150,6 +161,9 @@ function App() {
   };
 
   const handleOpenConverterTool = (tool: ConverterTool) => {
+    if (tool === 'loanComparison') {
+      setLoanComparisonResult(null);
+    }
     setScreen(tool);
   };
 
@@ -244,6 +258,22 @@ function App() {
       {screen === 'customRate' && <CustomRateScreen onBack={() => setScreen('home')} />}
       {screen === 'currencyList' && (
         <CurrencyListScreen onBack={() => setScreen('home')} />
+      )}
+      {screen === 'loanComparison' && (
+        <LoanComparisonScreen
+          onBack={() => setScreen('home')}
+          onCalculate={result => {
+            setLoanComparisonResult(result);
+            setScreen('loanComparisonResult');
+          }}
+        />
+      )}
+      {screen === 'loanComparisonResult' && loanComparisonResult && (
+        <LoanComparisonResultScreen
+          result={loanComparisonResult}
+          onBack={() => setScreen('loanComparison')}
+          onDone={() => setScreen('home')}
+        />
       )}
       {screen === 'calculator' && loanForm && (
         <LoanCalculatorScreen

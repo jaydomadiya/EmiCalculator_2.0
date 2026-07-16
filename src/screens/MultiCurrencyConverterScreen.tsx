@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -152,63 +154,69 @@ function MultiCurrencyConverterScreen({
         </View>
       </LinearGradient>
 
-      <FlatList
-        style={styles.body}
-        contentContainerStyle={styles.bodyContent}
-        data={targets}
-        keyExtractor={(item, index) => `${item.kind}-${item.code}-${index}`}
-        ListHeaderComponent={
-          <>
-            <View style={styles.baseCard}>
-              <Text style={styles.fieldLabel}>Amount</Text>
-              <View style={styles.amountRow}>
-                <TextInput
-                  style={styles.amountInput}
-                  value={amount}
-                  onChangeText={text => setAmount(text.replace(/[^0-9.]/g, ''))}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  placeholderTextColor={COLORS.subtext}
-                />
-                <TouchableOpacity
-                  style={styles.currencyPill}
-                  activeOpacity={0.75}
-                  onPress={() => setPickerMode({ type: 'base' })}
-                >
-                  <CurrencyBadge selection={baseSelection} size={18} />
-                  <Text style={styles.currencyPillCode}>{baseMeta.code}</Text>
-                  <Icon name="chevron-down" size={16} color={COLORS.subtext} />
-                </TouchableOpacity>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <FlatList
+          style={styles.body}
+          contentContainerStyle={[styles.bodyContent, { paddingBottom: insets.bottom + 96 }]}
+          data={targets}
+          keyExtractor={(item, index) => `${item.kind}-${item.code}-${index}`}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          ListHeaderComponent={
+            <>
+              <View style={styles.baseCard}>
+                <Text style={styles.fieldLabel}>Amount</Text>
+                <View style={styles.amountRow}>
+                  <TextInput
+                    style={styles.amountInput}
+                    value={amount}
+                    onChangeText={text => setAmount(text.replace(/[^0-9.]/g, ''))}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    placeholderTextColor={COLORS.subtext}
+                  />
+                  <TouchableOpacity
+                    style={styles.currencyPill}
+                    activeOpacity={0.75}
+                    onPress={() => setPickerMode({ type: 'base' })}
+                  >
+                    <CurrencyBadge selection={baseSelection} size={18} />
+                    <Text style={styles.currencyPillCode}>{baseMeta.code}</Text>
+                    <Icon name="chevron-down" size={16} color={COLORS.subtext} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.currencyName}>{baseMeta.name}</Text>
               </View>
-              <Text style={styles.currencyName}>{baseMeta.name}</Text>
-            </View>
 
-            {isAnyOffline && (
-              <View style={styles.noticeCard}>
-                <Icon name="wifi-off" size={18} color={COLORS.gold} />
-                <Text style={styles.noticeText}>
-                  {isFiatOffline && isCryptoOffline
-                    ? "You're offline — showing bundled reference rates."
-                    : isFiatOffline
-                      ? 'Currency rates are offline — showing bundled reference rates.'
-                      : 'Crypto prices are offline — showing bundled reference prices.'}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (isFiatOffline) reloadFiat();
-                    if (isCryptoOffline) reloadCrypto();
-                  }}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.retryText}>Retry</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+              {isAnyOffline && (
+                <View style={styles.noticeCard}>
+                  <Icon name="wifi-off" size={18} color={COLORS.gold} />
+                  <Text style={styles.noticeText}>
+                    {isFiatOffline && isCryptoOffline
+                      ? "You're offline — showing bundled reference rates."
+                      : isFiatOffline
+                        ? 'Currency rates are offline — showing bundled reference rates.'
+                        : 'Crypto prices are offline — showing bundled reference prices.'}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (isFiatOffline) reloadFiat();
+                      if (isCryptoOffline) reloadCrypto();
+                    }}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.retryText}>Retry</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
-            {targets.length > 0 && <Text style={styles.sectionLabel}>Converted To</Text>}
-          </>
-        }
-        renderItem={({ item, index }) => {
+              {targets.length > 0 && <Text style={styles.sectionLabel}>Converted To</Text>}
+            </>
+          }
+          renderItem={({ item, index }) => {
           const converted = convertBetween(numericAmount, baseSelection, item, fiatRates, cryptoRates);
           const unitRate = convertBetween(1, baseSelection, item, fiatRates, cryptoRates);
           const meta = getSelectionMeta(item);
@@ -253,33 +261,34 @@ function MultiCurrencyConverterScreen({
               )}
             </View>
           );
-        }}
-        ListFooterComponent={
-          <>
-            <TouchableOpacity
-              style={styles.addButton}
-              activeOpacity={0.8}
-              onPress={() => setPickerMode({ type: 'add' })}
-            >
-              <Icon name="plus-circle-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.addButtonText}>{addButtonLabel}</Text>
-            </TouchableOpacity>
+          }}
+          ListFooterComponent={
+            <>
+              <TouchableOpacity
+                style={styles.addButton}
+                activeOpacity={0.8}
+                onPress={() => setPickerMode({ type: 'add' })}
+              >
+                <Icon name="plus-circle-outline" size={20} color={COLORS.primary} />
+                <Text style={styles.addButtonText}>{addButtonLabel}</Text>
+              </TouchableOpacity>
 
-            <Text style={styles.updatedText}>
-              {fiatUpdatedAt
-                ? `Updated ${formatUpdatedAt(fiatUpdatedAt)}`
-                : isFiatOffline
-                  ? 'Offline reference rates'
-                  : 'Fetching latest rates…'}
-            </Text>
-            <Text style={styles.disclaimerText}>
-              Exchange rates and crypto prices are indicative and may differ from real-time
-              market, bank, or exchange rates. For reference only — not intended for trading or
-              financial decisions.
-            </Text>
-          </>
-        }
-      />
+              <Text style={styles.updatedText}>
+                {fiatUpdatedAt
+                  ? `Updated ${formatUpdatedAt(fiatUpdatedAt)}`
+                  : isFiatOffline
+                    ? 'Offline reference rates'
+                    : 'Fetching latest rates…'}
+              </Text>
+              <Text style={styles.disclaimerText}>
+                Exchange rates and crypto prices are indicative and may differ from real-time
+                market, bank, or exchange rates. For reference only — not intended for trading or
+                financial decisions.
+              </Text>
+            </>
+          }
+        />
+      </KeyboardAvoidingView>
 
       <CurrencyPickerModal
         visible={pickerMode !== null}
@@ -327,6 +336,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   body: {
+    flex: 1,
+  },
+  keyboardAvoider: {
     flex: 1,
   },
   bodyContent: {

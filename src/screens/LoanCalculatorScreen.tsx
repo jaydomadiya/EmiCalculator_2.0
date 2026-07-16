@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -456,44 +458,51 @@ function LoanCalculatorScreen({
         </View>
       </LinearGradient>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <FieldLabel>Loan Type</FieldLabel>
-        <TouchableOpacity
-          style={styles.fieldBox}
-          activeOpacity={0.75}
-          onPress={() => setLoanTypeModalVisible(true)}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 96 }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
-          <View
-            style={[
-              styles.loanTypeIcon,
-              { backgroundColor: hexToRgba(selectedLoanType.color, 0.14) },
-            ]}
+          <FieldLabel>Loan Type</FieldLabel>
+          <TouchableOpacity
+            style={styles.fieldBox}
+            activeOpacity={0.75}
+            onPress={() => setLoanTypeModalVisible(true)}
           >
-            <Icon name={selectedLoanType.icon as never} size={20} color={selectedLoanType.color} />
-          </View>
-          <Text style={styles.fieldValueText}>{t(selectedLoanType.labelKey)}</Text>
-          <Icon name="chevron-down" size={20} color={COLORS.subtext} />
-        </TouchableOpacity>
+            <View
+              style={[
+                styles.loanTypeIcon,
+                { backgroundColor: hexToRgba(selectedLoanType.color, 0.14) },
+              ]}
+            >
+              <Icon name={selectedLoanType.icon as never} size={20} color={selectedLoanType.color} />
+            </View>
+            <Text style={styles.fieldValueText}>{t(selectedLoanType.labelKey)}</Text>
+            <Icon name="chevron-down" size={20} color={COLORS.subtext} />
+          </TouchableOpacity>
 
-        {form.variant === 'simple' ? (
-          <SimpleFields form={form} loanType={selectedLoanType} onChangeForm={onChangeForm} />
-        ) : (
-          <MortgageFields form={form} onChangeForm={onChangeForm} />
-        )}
+          {form.variant === 'simple' ? (
+            <SimpleFields form={form} loanType={selectedLoanType} onChangeForm={onChangeForm} />
+          ) : (
+            <MortgageFields form={form} onChangeForm={onChangeForm} />
+          )}
 
-        <TouchableOpacity
-          style={[styles.nextButton, !isNextEnabled && styles.nextButtonDisabled]}
-          activeOpacity={0.85}
-          disabled={!isNextEnabled}
-          onPress={onNext}
-        >
-          <Text style={styles.nextButtonText}>Next</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity
+            style={[styles.nextButton, !isNextEnabled && styles.nextButtonDisabled]}
+            activeOpacity={0.85}
+            disabled={!isNextEnabled}
+            onPress={onNext}
+          >
+            <Text style={styles.nextButtonText}>Next</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <Modal
         visible={loanTypeModalVisible}
@@ -584,6 +593,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scroll: {
+    flex: 1,
+  },
+  keyboardAvoider: {
     flex: 1,
   },
   scrollContent: {

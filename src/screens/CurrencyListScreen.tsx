@@ -2,6 +2,8 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -174,17 +176,22 @@ function CurrencyListScreen({ onBack }: Props) {
         </View>
       </LinearGradient>
 
-      <View style={styles.body}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+      <View style={[styles.body, { paddingBottom: insets.bottom }]}>
         <View style={styles.searchBox}>
           <Icon name="magnify" size={18} color={COLORS.subtext} />
           <TextInput
             style={styles.searchInput}
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Search currency or coin"
-            placeholderTextColor={COLORS.subtext}
-            autoCorrect={false}
-          />
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search currency or coin"
+          placeholderTextColor={COLORS.subtext}
+          autoCorrect={false}
+          returnKeyType="search"
+        />
         </View>
 
         <View style={styles.tabRow}>
@@ -235,9 +242,10 @@ function CurrencyListScreen({ onBack }: Props) {
           extraData={isLoading}
           keyExtractor={item => `${item.kind}-${item.code}`}
           style={styles.list}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 72 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           renderItem={({ item }) => <CurrencyListRow item={item} isLoading={isLoading} />}
           getItemLayout={(_, index) => ({
             length: ROW_EXTENT,
@@ -275,6 +283,7 @@ function CurrencyListScreen({ onBack }: Props) {
           }
         />
       </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -315,6 +324,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 16,
+  },
+  keyboardAvoider: {
+    flex: 1,
   },
   searchBox: {
     flexDirection: 'row',

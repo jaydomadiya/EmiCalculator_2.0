@@ -357,7 +357,7 @@ function LoanResultScreen({ form, result, onBack, onDone }: Props) {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 96 }]}
         showsVerticalScrollIndicator={false}
       >
         {result.variant === 'simple' && <SimpleResultBody form={form} data={result.data} />}
@@ -531,6 +531,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 17,
     alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 12,
   },
   doneButtonText: {
     color: '#FFFFFF',

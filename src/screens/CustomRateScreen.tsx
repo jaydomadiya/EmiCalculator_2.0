@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -111,141 +120,148 @@ function CustomRateScreen({ onBack }: Props) {
         </View>
       </LinearGradient>
 
-      <ScrollView
-        style={styles.body}
-        contentContainerStyle={styles.bodyContent}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.rateCard}>
-          <View style={styles.rateCardTopRow}>
-            <Text style={styles.rateCardLabel}>Exchange Rate</Text>
-            {isCustomActive && (
-              <TouchableOpacity onPress={handleReset} activeOpacity={0.7}>
-                <Text style={styles.resetText}>Reset</Text>
+        <ScrollView
+          style={styles.body}
+          contentContainerStyle={[styles.bodyContent, { paddingBottom: insets.bottom + 96 }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View style={styles.rateCard}>
+            <View style={styles.rateCardTopRow}>
+              <Text style={styles.rateCardLabel}>Exchange Rate</Text>
+              {isCustomActive && (
+                <TouchableOpacity onPress={handleReset} activeOpacity={0.7}>
+                  <Text style={styles.resetText}>Reset</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {isEditingRate ? (
+              <View style={styles.rateEditRow}>
+                <Text style={styles.rateEditPrefix}>1 {fromMeta.code} =</Text>
+                <TextInput
+                  style={styles.rateEditInput}
+                  value={rateDraft}
+                  onChangeText={text => setRateDraft(text.replace(/[^0-9.]/g, ''))}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={COLORS.subtext}
+                  autoFocus
+                />
+                <Text style={styles.rateEditSuffix}>{toMeta.code}</Text>
+              </View>
+            ) : (
+              <Text style={styles.rateValueText}>
+                1 {fromMeta.code} ={' '}
+                <Text style={isCustomActive ? styles.rateValueCustom : styles.rateValueLive}>
+                  {activeRate !== null ? formatAmount(activeRate) : '--'}
+                </Text>{' '}
+                {toMeta.code}
+              </Text>
+            )}
+
+            {liveRate !== null && (
+              <Text style={styles.liveRateText}>
+                Live rate: 1 {fromMeta.code} = {formatAmount(liveRate)} {toMeta.code}
+              </Text>
+            )}
+
+            {isEditingRate ? (
+              <View style={styles.editActionsRow}>
+                <TouchableOpacity
+                  style={[styles.changeRateButton, styles.cancelButton]}
+                  activeOpacity={0.85}
+                  onPress={() => setIsEditingRate(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.changeRateButton, styles.saveButton]}
+                  activeOpacity={0.85}
+                  onPress={handleSaveRate}
+                >
+                  <Text style={styles.changeRateButtonText}>Save Rate</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.changeRateButton}
+                activeOpacity={0.85}
+                onPress={handleStartEditRate}
+              >
+                <Text style={styles.changeRateButtonText}>CHANGE RATE</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          {isEditingRate ? (
-            <View style={styles.rateEditRow}>
-              <Text style={styles.rateEditPrefix}>1 {fromMeta.code} =</Text>
+          {(isFiatOffline || isCryptoOffline) && (
+            <View style={styles.noticeCard}>
+              <Icon name="wifi-off" size={18} color={THEME.gold} />
+              <Text style={styles.noticeText}>
+                You're offline — showing bundled reference rates for the live comparison.
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.pairRow}>
+            <TouchableOpacity
+              style={styles.pairPill}
+              activeOpacity={0.75}
+              onPress={() => setPickerFor('from')}
+            >
+              <CurrencyBadge selection={fromSelection} size={18} />
+              <Text style={styles.pairPillText}>{fromMeta.code}</Text>
+              <Icon name="chevron-down" size={16} color={COLORS.subtext} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.swapButton} activeOpacity={0.8} onPress={handleSwap}>
+              <Icon name="swap-horizontal" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.pairPill}
+              activeOpacity={0.75}
+              onPress={() => setPickerFor('to')}
+            >
+              <CurrencyBadge selection={toSelection} size={18} />
+              <Text style={styles.pairPillText}>{toMeta.code}</Text>
+              <Icon name="chevron-down" size={16} color={COLORS.subtext} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.amountCard}>
+            <View style={styles.amountCol}>
+              <Text style={styles.amountLabel}>Amount</Text>
               <TextInput
-                style={styles.rateEditInput}
-                value={rateDraft}
-                onChangeText={text => setRateDraft(text.replace(/[^0-9.]/g, ''))}
+                style={styles.amountInput}
+                value={amount}
+                onChangeText={text => setAmount(text.replace(/[^0-9.]/g, ''))}
                 keyboardType="decimal-pad"
                 placeholder="0"
                 placeholderTextColor={COLORS.subtext}
-                autoFocus
               />
-              <Text style={styles.rateEditSuffix}>{toMeta.code}</Text>
             </View>
-          ) : (
-            <Text style={styles.rateValueText}>
-              1 {fromMeta.code} ={' '}
-              <Text style={isCustomActive ? styles.rateValueCustom : styles.rateValueLive}>
-                {activeRate !== null ? formatAmount(activeRate) : '--'}
-              </Text>{' '}
-              {toMeta.code}
-            </Text>
-          )}
-
-          {liveRate !== null && (
-            <Text style={styles.liveRateText}>
-              Live rate: 1 {fromMeta.code} = {formatAmount(liveRate)} {toMeta.code}
-            </Text>
-          )}
-
-          {isEditingRate ? (
-            <View style={styles.editActionsRow}>
-              <TouchableOpacity
-                style={[styles.changeRateButton, styles.cancelButton]}
-                activeOpacity={0.85}
-                onPress={() => setIsEditingRate(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.changeRateButton, styles.saveButton]}
-                activeOpacity={0.85}
-                onPress={handleSaveRate}
-              >
-                <Text style={styles.changeRateButtonText}>Save Rate</Text>
-              </TouchableOpacity>
+            <View style={styles.amountDivider} />
+            <View style={styles.amountCol}>
+              <Text style={styles.amountLabel}>Converted Amount</Text>
+              <Text style={styles.convertedValue} numberOfLines={1}>
+                {isLoading ? '…' : convertedAmount !== null ? formatAmount(convertedAmount) : '--'}
+              </Text>
             </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.changeRateButton}
-              activeOpacity={0.85}
-              onPress={handleStartEditRate}
-            >
-              <Text style={styles.changeRateButtonText}>CHANGE RATE</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {(isFiatOffline || isCryptoOffline) && (
-          <View style={styles.noticeCard}>
-            <Icon name="wifi-off" size={18} color={THEME.gold} />
-            <Text style={styles.noticeText}>
-              You're offline — showing bundled reference rates for the live comparison.
-            </Text>
           </View>
-        )}
 
-        <View style={styles.pairRow}>
-          <TouchableOpacity
-            style={styles.pairPill}
-            activeOpacity={0.75}
-            onPress={() => setPickerFor('from')}
-          >
-            <CurrencyBadge selection={fromSelection} size={18} />
-            <Text style={styles.pairPillText}>{fromMeta.code}</Text>
-            <Icon name="chevron-down" size={16} color={COLORS.subtext} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.swapButton} activeOpacity={0.8} onPress={handleSwap}>
-            <Icon name="swap-horizontal" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.pairPill}
-            activeOpacity={0.75}
-            onPress={() => setPickerFor('to')}
-          >
-            <CurrencyBadge selection={toSelection} size={18} />
-            <Text style={styles.pairPillText}>{toMeta.code}</Text>
-            <Icon name="chevron-down" size={16} color={COLORS.subtext} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.amountCard}>
-          <View style={styles.amountCol}>
-            <Text style={styles.amountLabel}>Amount</Text>
-            <TextInput
-              style={styles.amountInput}
-              value={amount}
-              onChangeText={text => setAmount(text.replace(/[^0-9.]/g, ''))}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              placeholderTextColor={COLORS.subtext}
-            />
-          </View>
-          <View style={styles.amountDivider} />
-          <View style={styles.amountCol}>
-            <Text style={styles.amountLabel}>Converted Amount</Text>
-            <Text style={styles.convertedValue} numberOfLines={1}>
-              {isLoading ? '…' : convertedAmount !== null ? formatAmount(convertedAmount) : '--'}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.disclaimerText}>
-          A custom rate overrides the live rate for this pair only, on this device. It is not
-          shared, saved to a server, or used elsewhere in the app — for reference and planning
-          purposes only.
-        </Text>
-      </ScrollView>
+          <Text style={styles.disclaimerText}>
+            A custom rate overrides the live rate for this pair only, on this device. It is not
+            shared, saved to a server, or used elsewhere in the app — for reference and planning
+            purposes only.
+          </Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <CurrencyPickerModal
         visible={pickerFor !== null}
@@ -300,6 +316,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   body: {
+    flex: 1,
+  },
+  keyboardAvoider: {
     flex: 1,
   },
   bodyContent: {

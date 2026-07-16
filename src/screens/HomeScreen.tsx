@@ -7,7 +7,12 @@ import { CATEGORY_PALETTE as PALETTE, THEME as COLORS, hexToRgba } from '../them
 
 const DEFAULT_FAB_LOAN_TYPE = 'personalLoan';
 
-export type ConverterTool = 'currencyConverter' | 'cryptoConverter' | 'customRate' | 'currencyList';
+export type ConverterTool =
+  | 'currencyConverter'
+  | 'cryptoConverter'
+  | 'customRate'
+  | 'currencyList'
+  | 'loanComparison';
 
 type TileItem = {
   labelKey: string;
@@ -48,7 +53,12 @@ const SECTIONS: Section[] = [
   {
     titleKey: 'sections.financialPlanner',
     items: [
-      { labelKey: 'tiles.loanComparison', icon: 'scale-balance', color: PALETTE.violet },
+      {
+        labelKey: 'tiles.loanComparison',
+        icon: 'scale-balance',
+        color: PALETTE.violet,
+        action: 'loanComparison',
+      },
       { labelKey: 'tiles.loanAnalysis', icon: 'chart-line-variant', color: PALETTE.teal },
       { labelKey: 'tiles.homeAffordability', icon: 'home-search-outline', color: PALETTE.indigo },
       { labelKey: 'tiles.savingsGoal', icon: 'piggy-bank-outline', color: PALETTE.rose },
@@ -185,16 +195,24 @@ function BottomNav({
   insetBottom,
   t,
   onPressFab,
+  onPressConvert,
 }: {
   insetBottom: number;
   t: (key: string) => string;
   onPressFab: () => void;
+  onPressConvert: () => void;
 }) {
   return (
     <View style={[styles.navBar, { paddingBottom: insetBottom }]}>
       <View style={styles.navRow}>
         {NAV_ITEMS.slice(0, 2).map(navItem => (
-          <NavButton key={navItem.key} navItem={navItem} active={navItem.key === 'home'} label={t(navItem.labelKey)} />
+          <NavButton
+            key={navItem.key}
+            navItem={navItem}
+            active={navItem.key === 'home'}
+            label={t(navItem.labelKey)}
+            onPress={navItem.key === 'convert' ? onPressConvert : undefined}
+          />
         ))}
         <View style={styles.fabSpacer} />
         {NAV_ITEMS.slice(2).map(navItem => (
@@ -219,13 +237,15 @@ function NavButton({
   navItem,
   active,
   label,
+  onPress,
 }: {
   navItem: { key: string; labelKey: string; icon: string };
   active: boolean;
   label: string;
+  onPress?: () => void;
 }) {
   return (
-    <TouchableOpacity style={styles.navButton} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.navButton} activeOpacity={0.7} onPress={onPress}>
       <View style={[styles.navIconWrap, active && styles.navIconWrapActive]}>
         <Icon
           name={navItem.icon as never}
@@ -289,6 +309,7 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
         insetBottom={insets.bottom}
         t={t}
         onPressFab={() => onOpenLoanCalculator(DEFAULT_FAB_LOAN_TYPE)}
+        onPressConvert={() => onOpenConverterTool('currencyConverter')}
       />
     </View>
   );
