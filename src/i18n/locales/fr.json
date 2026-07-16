@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - Calculatrice Financière"
+  },
+  "banner": {
+    "title": "Assistant Financier\nPersonnel IA",
+    "cta": "Chat IA"
+  },
+  "sections": {
+    "converter": "CONVERTISSEUR",
+    "emiCalculator": "CALCULATEUR EMI",
+    "financialPlanner": "Planificateur Financier",
+    "investment": "Calculateurs d'Investissement",
+    "other": "AUTRES CALCULATEURS"
+  },
+  "tiles": {
+    "currencyConverter": "Convertisseur de Devises",
+    "cryptoConverter": "Convertisseur de Cryptomonnaies",
+    "customRate": "Taux Personnalisé",
+    "currencyList": "Liste des Devises",
+    "personalLoan": "Prêt Personnel",
+    "mortgageLoan": "Prêt Hypothécaire",
+    "carLoan": "Prêt Automobile",
+    "businessLoan": "Prêt Professionnel",
+    "goldLoan": "Prêt sur Or",
+    "studentLoan": "Prêt Étudiant",
+    "cashLoan": "Prêt en Espèces",
+    "creditLoan": "Prêt à Crédit",
+    "loanComparison": "Comparateur de Prêts",
+    "loanAnalysis": "Analyse de Prêt",
+    "homeAffordability": "Capacité d'Achat",
+    "savingsGoal": "Objectif d'Épargne",
+    "fixedDeposit": "Dépôt à Terme",
+    "recurringDeposit": "Dépôt Récurrent",
+    "sipCalculator": "Calculateur SIP",
+    "returnOnInvestment": "Retour sur Investissement",
+    "creditCardPayoff": "Remboursement Carte de Crédit",
+    "creditCardMinPayment": "Paiement Minimum Carte",
+    "breakEvenSellPrice": "Prix de Seuil de Rentabilité",
+    "compoundInterest": "Intérêt Composé"
+  },
+  "nav": {
+    "home": "Accueil",
+    "convert": "Convertir",
+    "chart": "Graphique",
+    "settings": "Réglages"
+  },
+  "language": {
+    "title": "Langue"
+  }
+}

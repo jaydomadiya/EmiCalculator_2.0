@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - Finance Calculator"
+  },
+  "banner": {
+    "title": "AI Personal\nFinancial Assistant",
+    "cta": "AI Chat"
+  },
+  "sections": {
+    "converter": "CONVERTER",
+    "emiCalculator": "EMI CALCULATOR",
+    "financialPlanner": "Financial Planner",
+    "investment": "Investment Calculators",
+    "other": "OTHER CALCULATORS"
+  },
+  "tiles": {
+    "currencyConverter": "Currency Converter",
+    "cryptoConverter": "Crypto Currency Converter",
+    "customRate": "Custom Rate",
+    "currencyList": "Currency List",
+    "personalLoan": "Personal Loan",
+    "mortgageLoan": "Mortgage Loan",
+    "carLoan": "Car Loan",
+    "businessLoan": "Business Loan",
+    "goldLoan": "Gold Loan",
+    "studentLoan": "Student Loan",
+    "cashLoan": "Cash Loan",
+    "creditLoan": "Credit Loan",
+    "loanComparison": "Loan Comparison",
+    "loanAnalysis": "Loan Analysis",
+    "homeAffordability": "Home Affordability",
+    "savingsGoal": "Savings Goal",
+    "fixedDeposit": "Fixed Deposit",
+    "recurringDeposit": "Recurring Deposit",
+    "sipCalculator": "SIP Calculator",
+    "returnOnInvestment": "Return On Investment",
+    "creditCardPayoff": "Credit Card Payoff",
+    "creditCardMinPayment": "Credit Card Minimum Payment",
+    "breakEvenSellPrice": "Break-even Sell Price",
+    "compoundInterest": "Compound Interest"
+  },
+  "nav": {
+    "home": "Home",
+    "convert": "Convert",
+    "chart": "Chart",
+    "settings": "Settings"
+  },
+  "language": {
+    "title": "Language"
+  }
+}

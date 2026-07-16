@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - Calculadora Financiera"
+  },
+  "banner": {
+    "title": "Asistente Financiero\nPersonal con IA",
+    "cta": "Chat con IA"
+  },
+  "sections": {
+    "converter": "CONVERSOR",
+    "emiCalculator": "CALCULADORA DE EMI",
+    "financialPlanner": "Planificador Financiero",
+    "investment": "Calculadoras de Inversión",
+    "other": "OTRAS CALCULADORAS"
+  },
+  "tiles": {
+    "currencyConverter": "Conversor de Moneda",
+    "cryptoConverter": "Conversor de Criptomonedas",
+    "customRate": "Tasa Personalizada",
+    "currencyList": "Lista de Monedas",
+    "personalLoan": "Préstamo Personal",
+    "mortgageLoan": "Préstamo Hipotecario",
+    "carLoan": "Préstamo para Auto",
+    "businessLoan": "Préstamo Comercial",
+    "goldLoan": "Préstamo sobre Oro",
+    "studentLoan": "Préstamo Estudiantil",
+    "cashLoan": "Préstamo en Efectivo",
+    "creditLoan": "Préstamo de Crédito",
+    "loanComparison": "Comparar Préstamos",
+    "loanAnalysis": "Análisis de Préstamo",
+    "homeAffordability": "Capacidad de Compra",
+    "savingsGoal": "Meta de Ahorro",
+    "fixedDeposit": "Depósito a Plazo Fijo",
+    "recurringDeposit": "Depósito Recurrente",
+    "sipCalculator": "Calculadora SIP",
+    "returnOnInvestment": "Retorno de Inversión",
+    "creditCardPayoff": "Pago de Tarjeta de Crédito",
+    "creditCardMinPayment": "Pago Mínimo de Tarjeta",
+    "breakEvenSellPrice": "Precio de Equilibrio",
+    "compoundInterest": "Interés Compuesto"
+  },
+  "nav": {
+    "home": "Inicio",
+    "convert": "Convertir",
+    "chart": "Gráfico",
+    "settings": "Ajustes"
+  },
+  "language": {
+    "title": "Idioma"
+  }
+}

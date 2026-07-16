@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - Calculadora Financeira"
+  },
+  "banner": {
+    "title": "Assistente Financeiro\nPessoal com IA",
+    "cta": "Chat com IA"
+  },
+  "sections": {
+    "converter": "CONVERSOR",
+    "emiCalculator": "CALCULADORA DE EMI",
+    "financialPlanner": "Planejador Financeiro",
+    "investment": "Calculadoras de Investimento",
+    "other": "OUTRAS CALCULADORAS"
+  },
+  "tiles": {
+    "currencyConverter": "Conversor de Moeda",
+    "cryptoConverter": "Conversor de Criptomoeda",
+    "customRate": "Taxa Personalizada",
+    "currencyList": "Lista de Moedas",
+    "personalLoan": "Empréstimo Pessoal",
+    "mortgageLoan": "Empréstimo Hipotecário",
+    "carLoan": "Financiamento de Carro",
+    "businessLoan": "Empréstimo Empresarial",
+    "goldLoan": "Empréstimo sobre Ouro",
+    "studentLoan": "Empréstimo Estudantil",
+    "cashLoan": "Empréstimo em Dinheiro",
+    "creditLoan": "Empréstimo de Crédito",
+    "loanComparison": "Comparação de Empréstimos",
+    "loanAnalysis": "Análise de Empréstimo",
+    "homeAffordability": "Capacidade de Compra de Imóvel",
+    "savingsGoal": "Meta de Poupança",
+    "fixedDeposit": "Depósito a Prazo",
+    "recurringDeposit": "Depósito Recorrente",
+    "sipCalculator": "Calculadora SIP",
+    "returnOnInvestment": "Retorno sobre Investimento",
+    "creditCardPayoff": "Quitação de Cartão de Crédito",
+    "creditCardMinPayment": "Pagamento Mínimo do Cartão",
+    "breakEvenSellPrice": "Preço de Equilíbrio",
+    "compoundInterest": "Juros Compostos"
+  },
+  "nav": {
+    "home": "Início",
+    "convert": "Converter",
+    "chart": "Gráfico",
+    "settings": "Configurações"
+  },
+  "language": {
+    "title": "Idioma"
+  }
+}

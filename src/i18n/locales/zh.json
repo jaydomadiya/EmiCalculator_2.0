@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - 财务计算器"
+  },
+  "banner": {
+    "title": "AI 个人\n财务助手",
+    "cta": "AI 聊天"
+  },
+  "sections": {
+    "converter": "转换器",
+    "emiCalculator": "EMI 计算器",
+    "financialPlanner": "财务规划",
+    "investment": "投资计算器",
+    "other": "其他计算器"
+  },
+  "tiles": {
+    "currencyConverter": "货币转换器",
+    "cryptoConverter": "加密货币转换器",
+    "customRate": "自定义汇率",
+    "currencyList": "货币列表",
+    "personalLoan": "个人贷款",
+    "mortgageLoan": "按揭贷款",
+    "carLoan": "汽车贷款",
+    "businessLoan": "商业贷款",
+    "goldLoan": "黄金贷款",
+    "studentLoan": "学生贷款",
+    "cashLoan": "现金贷款",
+    "creditLoan": "信用贷款",
+    "loanComparison": "贷款比较",
+    "loanAnalysis": "贷款分析",
+    "homeAffordability": "购房能力评估",
+    "savingsGoal": "储蓄目标",
+    "fixedDeposit": "定期存款",
+    "recurringDeposit": "定期定额存款",
+    "sipCalculator": "SIP 计算器",
+    "returnOnInvestment": "投资回报率",
+    "creditCardPayoff": "信用卡还清计算",
+    "creditCardMinPayment": "信用卡最低还款额",
+    "breakEvenSellPrice": "盈亏平衡售价",
+    "compoundInterest": "复利"
+  },
+  "nav": {
+    "home": "首页",
+    "convert": "转换",
+    "chart": "图表",
+    "settings": "设置"
+  },
+  "language": {
+    "title": "语言"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "ईएमआई - फाइनेंस कैलकुलेटर"
+  },
+  "banner": {
+    "title": "एआई पर्सनल\nफाइनेंशियल असिस्टेंट",
+    "cta": "एआई चैट"
+  },
+  "sections": {
+    "converter": "कन्वर्टर",
+    "emiCalculator": "ईएमआई कैलकुलेटर",
+    "financialPlanner": "फाइनेंशियल प्लानर",
+    "investment": "निवेश कैलकुलेटर",
+    "other": "अन्य कैलकुलेटर"
+  },
+  "tiles": {
+    "currencyConverter": "करेंसी कन्वर्टर",
+    "cryptoConverter": "क्रिप्टो करेंसी कन्वर्टर",
+    "customRate": "कस्टम रेट",
+    "currencyList": "करेंसी सूची",
+    "personalLoan": "पर्सनल लोन",
+    "mortgageLoan": "मॉर्गेज लोन",
+    "carLoan": "कार लोन",
+    "businessLoan": "बिज़नेस लोन",
+    "goldLoan": "गोल्ड लोन",
+    "studentLoan": "स्टूडेंट लोन",
+    "cashLoan": "कैश लोन",
+    "creditLoan": "क्रेडिट लोन",
+    "loanComparison": "लोन तुलना",
+    "loanAnalysis": "लोन विश्लेषण",
+    "homeAffordability": "होम अफोर्डेबिलिटी",
+    "savingsGoal": "बचत लक्ष्य",
+    "fixedDeposit": "फिक्स्ड डिपॉज़िट",
+    "recurringDeposit": "रिकरिंग डिपॉज़िट",
+    "sipCalculator": "एसआईपी कैलकुलेटर",
+    "returnOnInvestment": "रिटर्न ऑन इन्वेस्टमेंट",
+    "creditCardPayoff": "क्रेडिट कार्ड पेऑफ",
+    "creditCardMinPayment": "क्रेडिट कार्ड न्यूनतम भुगतान",
+    "breakEvenSellPrice": "ब्रेक-ईवन सेल प्राइस",
+    "compoundInterest": "चक्रवृद्धि ब्याज"
+  },
+  "nav": {
+    "home": "होम",
+    "convert": "कन्वर्ट",
+    "chart": "चार्ट",
+    "settings": "सेटिंग्स"
+  },
+  "language": {
+    "title": "भाषा"
+  }
+}

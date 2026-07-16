@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - 財務計算機"
+  },
+  "banner": {
+    "title": "AIパーソナル\nファイナンシャルアシスタント",
+    "cta": "AIチャット"
+  },
+  "sections": {
+    "converter": "コンバーター",
+    "emiCalculator": "EMI計算機",
+    "financialPlanner": "ファイナンシャルプランナー",
+    "investment": "投資計算機",
+    "other": "その他の計算機"
+  },
+  "tiles": {
+    "currencyConverter": "通貨コンバーター",
+    "cryptoConverter": "暗号通貨コンバーター",
+    "customRate": "カスタムレート",
+    "currencyList": "通貨リスト",
+    "personalLoan": "個人ローン",
+    "mortgageLoan": "住宅ローン",
+    "carLoan": "自動車ローン",
+    "businessLoan": "事業ローン",
+    "goldLoan": "ゴールドローン",
+    "studentLoan": "学生ローン",
+    "cashLoan": "キャッシュローン",
+    "creditLoan": "クレジットローン",
+    "loanComparison": "ローン比較",
+    "loanAnalysis": "ローン分析",
+    "homeAffordability": "住宅購入可能性",
+    "savingsGoal": "貯蓄目標",
+    "fixedDeposit": "定期預金",
+    "recurringDeposit": "積立預金",
+    "sipCalculator": "SIP計算機",
+    "returnOnInvestment": "投資収益率",
+    "creditCardPayoff": "クレジットカード完済",
+    "creditCardMinPayment": "クレジットカード最低支払額",
+    "breakEvenSellPrice": "損益分岐売価",
+    "compoundInterest": "複利"
+  },
+  "nav": {
+    "home": "ホーム",
+    "convert": "変換",
+    "chart": "チャート",
+    "settings": "設定"
+  },
+  "language": {
+    "title": "言語"
+  }
+}

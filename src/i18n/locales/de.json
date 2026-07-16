@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - Finanzrechner"
+  },
+  "banner": {
+    "title": "KI Persönlicher\nFinanzassistent",
+    "cta": "KI-Chat"
+  },
+  "sections": {
+    "converter": "UMRECHNER",
+    "emiCalculator": "EMI-RECHNER",
+    "financialPlanner": "Finanzplaner",
+    "investment": "Investitionsrechner",
+    "other": "WEITERE RECHNER"
+  },
+  "tiles": {
+    "currencyConverter": "Währungsrechner",
+    "cryptoConverter": "Kryptowährungsrechner",
+    "customRate": "Individueller Kurs",
+    "currencyList": "Währungsliste",
+    "personalLoan": "Privatkredit",
+    "mortgageLoan": "Hypothekendarlehen",
+    "carLoan": "Autokredit",
+    "businessLoan": "Geschäftskredit",
+    "goldLoan": "Goldkredit",
+    "studentLoan": "Studienkredit",
+    "cashLoan": "Barkredit",
+    "creditLoan": "Kreditdarlehen",
+    "loanComparison": "Kreditvergleich",
+    "loanAnalysis": "Kreditanalyse",
+    "homeAffordability": "Immobilien-Erschwinglichkeit",
+    "savingsGoal": "Sparziel",
+    "fixedDeposit": "Festgeld",
+    "recurringDeposit": "Sparplan",
+    "sipCalculator": "SIP-Rechner",
+    "returnOnInvestment": "Kapitalrendite",
+    "creditCardPayoff": "Kreditkarten-Tilgung",
+    "creditCardMinPayment": "Mindestzahlung Kreditkarte",
+    "breakEvenSellPrice": "Gewinnschwellenpreis",
+    "compoundInterest": "Zinseszins"
+  },
+  "nav": {
+    "home": "Start",
+    "convert": "Umrechnen",
+    "chart": "Diagramm",
+    "settings": "Einstellungen"
+  },
+  "language": {
+    "title": "Sprache"
+  }
+}

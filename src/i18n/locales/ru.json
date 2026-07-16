@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - Финансовый калькулятор"
+  },
+  "banner": {
+    "title": "ИИ Личный\nфинансовый помощник",
+    "cta": "ИИ Чат"
+  },
+  "sections": {
+    "converter": "КОНВЕРТЕР",
+    "emiCalculator": "КАЛЬКУЛЯТОР EMI",
+    "financialPlanner": "Финансовый планировщик",
+    "investment": "Инвестиционные калькуляторы",
+    "other": "ДРУГИЕ КАЛЬКУЛЯТОРЫ"
+  },
+  "tiles": {
+    "currencyConverter": "Конвертер валют",
+    "cryptoConverter": "Конвертер криптовалют",
+    "customRate": "Свой курс",
+    "currencyList": "Список валют",
+    "personalLoan": "Личный кредит",
+    "mortgageLoan": "Ипотечный кредит",
+    "carLoan": "Автокредит",
+    "businessLoan": "Бизнес-кредит",
+    "goldLoan": "Кредит под золото",
+    "studentLoan": "Студенческий кредит",
+    "cashLoan": "Кредит наличными",
+    "creditLoan": "Кредитный заём",
+    "loanComparison": "Сравнение кредитов",
+    "loanAnalysis": "Анализ кредита",
+    "homeAffordability": "Доступность жилья",
+    "savingsGoal": "Цель накоплений",
+    "fixedDeposit": "Срочный вклад",
+    "recurringDeposit": "Накопительный вклад",
+    "sipCalculator": "Калькулятор SIP",
+    "returnOnInvestment": "Доходность инвестиций",
+    "creditCardPayoff": "Погашение кредитной карты",
+    "creditCardMinPayment": "Минимальный платёж по карте",
+    "breakEvenSellPrice": "Цена безубыточности",
+    "compoundInterest": "Сложный процент"
+  },
+  "nav": {
+    "home": "Главная",
+    "convert": "Конвертер",
+    "chart": "График",
+    "settings": "Настройки"
+  },
+  "language": {
+    "title": "Язык"
+  }
+}

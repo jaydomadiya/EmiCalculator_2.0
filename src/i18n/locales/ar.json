@@ -1,0 +1,51 @@
+{
+  "common": {
+    "appTitle": "EMI - الآلة الحاسبة المالية"
+  },
+  "banner": {
+    "title": "مساعد مالي شخصي\nبالذكاء الاصطناعي",
+    "cta": "محادثة الذكاء الاصطناعي"
+  },
+  "sections": {
+    "converter": "المحول",
+    "emiCalculator": "حاسبة الأقساط",
+    "financialPlanner": "المخطط المالي",
+    "investment": "حاسبات الاستثمار",
+    "other": "حاسبات أخرى"
+  },
+  "tiles": {
+    "currencyConverter": "محول العملات",
+    "cryptoConverter": "محول العملات الرقمية",
+    "customRate": "سعر مخصص",
+    "currencyList": "قائمة العملات",
+    "personalLoan": "قرض شخصي",
+    "mortgageLoan": "قرض عقاري",
+    "carLoan": "قرض سيارة",
+    "businessLoan": "قرض تجاري",
+    "goldLoan": "قرض على الذهب",
+    "studentLoan": "قرض طلابي",
+    "cashLoan": "قرض نقدي",
+    "creditLoan": "قرض ائتماني",
+    "loanComparison": "مقارنة القروض",
+    "loanAnalysis": "تحليل القرض",
+    "homeAffordability": "القدرة على شراء منزل",
+    "savingsGoal": "هدف الادخار",
+    "fixedDeposit": "وديعة ثابتة",
+    "recurringDeposit": "وديعة متكررة",
+    "sipCalculator": "حاسبة SIP",
+    "returnOnInvestment": "العائد على الاستثمار",
+    "creditCardPayoff": "سداد بطاقة الائتمان",
+    "creditCardMinPayment": "الحد الأدنى لدفع البطاقة",
+    "breakEvenSellPrice": "سعر نقطة التعادل",
+    "compoundInterest": "الفائدة المركبة"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "convert": "تحويل",
+    "chart": "الرسم البياني",
+    "settings": "الإعدادات"
+  },
+  "language": {
+    "title": "اللغة"
+  }
+}
