@@ -3,47 +3,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { CATEGORY_PALETTE as PALETTE, THEME as COLORS, hexToRgba } from '../theme/colors';
 
-const PALETTE = {
-  emerald: '#1E8F5E',
-  amber: '#D9822B',
-  indigo: '#4C5FD5',
-  rose: '#D5567C',
-  teal: '#1897A6',
-  violet: '#8B5CF6',
-  gold: '#B8860B',
-  sky: '#2F86EB',
-  coral: '#E2673F',
-  plum: '#9B4F8C',
-};
+const DEFAULT_FAB_LOAN_TYPE = 'personalLoan';
 
-const COLORS = {
-  headerFrom: '#0B3D2E',
-  headerTo: '#12594A',
-  screenBg: '#FBFCFB',
-  banner: '#EAF8F0',
-  bannerButton: '#1E8F5E',
-  sparkle: '#B8860B',
-  text: '#132420',
-  subtext: '#71807B',
-  border: '#ECEFEE',
-  navActive: '#1E8F5E',
-  navInactive: '#9AA6A1',
-};
-
-function hexToRgba(hex: string, alpha: number): string {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+export type ConverterTool = 'currencyConverter' | 'cryptoConverter' | 'customRate' | 'currencyList';
 
 type TileItem = {
   labelKey: string;
   icon: string;
   color: string;
   loanTypeKey?: string;
+  action?: ConverterTool;
 };
 
 type Section = {
@@ -55,10 +26,10 @@ const SECTIONS: Section[] = [
   {
     titleKey: 'sections.converter',
     items: [
-      { labelKey: 'tiles.currencyConverter', icon: 'cash-multiple', color: PALETTE.sky },
-      { labelKey: 'tiles.cryptoConverter', icon: 'bitcoin', color: PALETTE.amber },
-      { labelKey: 'tiles.customRate', icon: 'hand-coin-outline', color: PALETTE.teal },
-      { labelKey: 'tiles.currencyList', icon: 'format-list-bulleted-square', color: PALETTE.indigo },
+      { labelKey: 'tiles.currencyConverter', icon: 'cash-multiple', color: PALETTE.sky, action: 'currencyConverter' },
+      { labelKey: 'tiles.cryptoConverter', icon: 'bitcoin', color: PALETTE.amber, action: 'cryptoConverter' },
+      { labelKey: 'tiles.customRate', icon: 'hand-coin-outline', color: PALETTE.teal, action: 'customRate' },
+      { labelKey: 'tiles.currencyList', icon: 'format-list-bulleted-square', color: PALETTE.indigo, action: 'currencyList' },
     ],
   },
   {
@@ -122,10 +93,13 @@ function Tile({
       <View
         style={[
           styles.tileIconCircle,
-          { backgroundColor: hexToRgba(item.color, 0.14) },
+          {
+            backgroundColor: hexToRgba(item.color, 0.12),
+            borderColor: hexToRgba(item.color, 0.22),
+          },
         ]}
       >
-        <Icon name={item.icon as never} size={25} color={item.color} />
+        <Icon name={item.icon as never} size={23} color={item.color} />
       </View>
       <Text style={styles.tileLabel} numberOfLines={2}>
         {label}
@@ -134,31 +108,45 @@ function Tile({
   );
 }
 
+function SectionHeading({ label }: { label: string }) {
+  return (
+    <View style={styles.sectionHeadingRow}>
+      <View style={styles.sectionHeadingBar} />
+      <Text style={styles.sectionTitle}>{label}</Text>
+    </View>
+  );
+}
+
 function GridSection({
   section,
   t,
   onSelectLoanType,
+  onOpenConverterTool,
 }: {
   section: Section;
   t: (key: string) => string;
   onSelectLoanType?: (loanTypeKey: string) => void;
+  onOpenConverterTool?: (tool: ConverterTool) => void;
 }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{t(section.titleKey)}</Text>
-      <View style={styles.tileGrid}>
-        {section.items.map(item => (
-          <Tile
-            key={item.labelKey}
-            item={item}
-            label={t(item.labelKey)}
-            onPress={
-              item.loanTypeKey && onSelectLoanType
-                ? () => onSelectLoanType(item.loanTypeKey as string)
-                : undefined
+      <SectionHeading label={t(section.titleKey)} />
+      <View style={styles.sectionCard}>
+        <View style={styles.tileGrid}>
+          {section.items.map(item => {
+            let onPress: (() => void) | undefined;
+            if (item.loanTypeKey && onSelectLoanType) {
+              onPress = () => onSelectLoanType(item.loanTypeKey as string);
+            } else if (item.action && onOpenConverterTool) {
+              const tool = item.action;
+              onPress = () => onOpenConverterTool(tool);
             }
-          />
-        ))}
+
+            return (
+              <Tile key={item.labelKey} item={item} label={t(item.labelKey)} onPress={onPress} />
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -167,7 +155,7 @@ function GridSection({
 function OtherCalculatorsCard({ t }: { t: (key: string) => string }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{t('sections.other')}</Text>
+      <SectionHeading label={t('sections.other')} />
       <View style={styles.otherCard}>
         {OTHER_CALCULATORS.map(item => (
           <TouchableOpacity
@@ -196,9 +184,11 @@ function OtherCalculatorsCard({ t }: { t: (key: string) => string }) {
 function BottomNav({
   insetBottom,
   t,
+  onPressFab,
 }: {
   insetBottom: number;
   t: (key: string) => string;
+  onPressFab: () => void;
 }) {
   return (
     <View style={[styles.navBar, { paddingBottom: insetBottom }]}>
@@ -211,7 +201,7 @@ function BottomNav({
           <NavButton key={navItem.key} navItem={navItem} active={false} label={t(navItem.labelKey)} />
         ))}
       </View>
-      <TouchableOpacity activeOpacity={0.85} style={styles.fabWrap}>
+      <TouchableOpacity activeOpacity={0.85} style={styles.fabWrap} onPress={onPressFab}>
         <LinearGradient
           colors={[COLORS.headerTo, COLORS.headerFrom]}
           start={{ x: 0, y: 0 }}
@@ -252,9 +242,10 @@ function NavButton({
 
 type HomeScreenProps = {
   onOpenLoanCalculator: (loanTypeKey: string) => void;
+  onOpenConverterTool: (tool: ConverterTool) => void;
 };
 
-function HomeScreen({ onOpenLoanCalculator }: HomeScreenProps) {
+function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenProps) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
@@ -266,15 +257,14 @@ function HomeScreen({ onOpenLoanCalculator }: HomeScreenProps) {
         end={{ x: 1, y: 1 }}
         style={[styles.header, { paddingTop: insets.top + 8 }]}
       >
+        <Icon
+          name="finance"
+          size={128}
+          color="rgba(255,255,255,0.06)"
+          style={styles.headerWatermark}
+        />
         <Text style={styles.headerTitle}>{t('common.appTitle')}</Text>
-        <LinearGradient
-          colors={['#E8C15C', '#B8860B']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.premiumBadge}
-        >
-          <Icon name="crown" size={17} color="#FFFFFF" />
-        </LinearGradient>
+        <View style={styles.headerAccent} />
       </LinearGradient>
 
       <ScrollView
@@ -282,31 +272,24 @@ function HomeScreen({ onOpenLoanCalculator }: HomeScreenProps) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.aiBanner}>
-          <View style={styles.aiBannerIcon}>
-            <Icon name="creation" size={22} color={COLORS.sparkle} />
-          </View>
-          <Text style={styles.aiBannerText}>{t('banner.title')}</Text>
-          <TouchableOpacity style={styles.aiChatButton} activeOpacity={0.85}>
-            <Text style={styles.aiChatButtonText}>{t('banner.cta')}</Text>
-          </TouchableOpacity>
-        </View>
-
         {SECTIONS.map(section => (
           <GridSection
             key={section.titleKey}
             section={section}
             t={t}
             onSelectLoanType={onOpenLoanCalculator}
+            onOpenConverterTool={onOpenConverterTool}
           />
         ))}
 
         <OtherCalculatorsCard t={t} />
       </ScrollView>
 
-      <BottomNav insetBottom={insets.bottom} t={t} />
-
-      <View style={styles.footerAdSlot} />
+      <BottomNav
+        insetBottom={insets.bottom}
+        t={t}
+        onPressFab={() => onOpenLoanCalculator(DEFAULT_FAB_LOAN_TYPE)}
+      />
     </View>
   );
 }
@@ -318,81 +301,76 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingBottom: 24,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
+    elevation: 6,
+    shadowColor: COLORS.headerFrom,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  headerWatermark: {
+    position: 'absolute',
+    top: -24,
+    right: -18,
   },
   headerTitle: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
-  premiumBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerAccent: {
+    width: 36,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: COLORS.gold,
+    marginTop: 10,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 22,
     paddingBottom: 24,
   },
-  aiBanner: {
-    backgroundColor: COLORS.banner,
-    borderRadius: 18,
-    padding: 16,
+  section: {
+    marginBottom: 20,
+  },
+  sectionHeadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 22,
-    elevation: 1,
-    shadowColor: '#0B3D2E',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    marginBottom: 12,
+    gap: 8,
   },
-  aiBannerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  aiBannerText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    lineHeight: 18,
-  },
-  aiChatButton: {
-    backgroundColor: COLORS.bannerButton,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 20,
-  },
-  aiChatButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  section: {
-    marginBottom: 22,
+  sectionHeadingBar: {
+    width: 3,
+    height: 13,
+    borderRadius: 2,
+    backgroundColor: COLORS.gold,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 14,
-    letterSpacing: 0.4,
-    opacity: 0.75,
+    letterSpacing: 0.6,
+    opacity: 0.8,
+  },
+  sectionCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 20,
+    padding: 16,
+    paddingBottom: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    elevation: 1,
+    shadowColor: COLORS.headerFrom,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
   tileGrid: {
     flexDirection: 'row',
@@ -405,15 +383,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   tileIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   tileLabel: {
     fontSize: 11.5,
+    fontWeight: '500',
     color: COLORS.text,
     textAlign: 'center',
     lineHeight: 14,
@@ -421,10 +401,15 @@ const styles = StyleSheet.create({
   otherCard: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: 20,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBg,
+    elevation: 1,
+    shadowColor: COLORS.headerFrom,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
   otherItem: {
     width: '50%',
@@ -449,13 +434,18 @@ const styles = StyleSheet.create({
   },
   navBar: {
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    elevation: 12,
+    shadowColor: COLORS.headerFrom,
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 },
   },
   navRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
   },
   navButton: {
     flex: 1,
@@ -464,27 +454,36 @@ const styles = StyleSheet.create({
   },
   navIconWrap: {
     paddingHorizontal: 14,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 12,
   },
   navIconWrapActive: {
     backgroundColor: hexToRgba(COLORS.navActive, 0.12),
   },
   navLabel: {
-    fontSize: 11,
+    fontSize: 10.5,
+    fontWeight: '500',
     color: COLORS.navInactive,
   },
   navLabelActive: {
     color: COLORS.navActive,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   fabSpacer: {
     flex: 1,
   },
   fabWrap: {
     position: 'absolute',
-    top: -22,
+    top: -26,
     alignSelf: 'center',
+    borderRadius: 30,
+    padding: 4,
+    backgroundColor: '#FFFFFF',
+    elevation: 6,
+    shadowColor: COLORS.headerFrom,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   fab: {
     width: 52,
@@ -492,17 +491,6 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  footerAdSlot: {
-    height: 60,
-    backgroundColor: COLORS.screenBg,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
   },
 });
 

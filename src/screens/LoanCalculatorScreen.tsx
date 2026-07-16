@@ -22,24 +22,17 @@ import {
   TenureUnit,
 } from '../types/loan';
 import { formatDate } from '../utils/emi';
+import { THEME, hexToRgba } from '../theme/colors';
 
 const COLORS = {
-  headerFrom: '#0B3D2E',
-  headerTo: '#12594A',
-  screenBg: '#FBFCFB',
-  text: '#132420',
-  subtext: '#5F6E68',
-  fieldBorder: '#DDE4E0',
-  fieldBg: '#FFFFFF',
+  headerFrom: THEME.headerFrom,
+  headerTo: THEME.headerTo,
+  screenBg: THEME.screenBg,
+  text: THEME.text,
+  subtext: THEME.subtext,
+  fieldBorder: THEME.border,
+  fieldBg: THEME.cardBg,
 };
-
-function hexToRgba(hex: string, alpha: number): string {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 function formatAmountInput(raw: string): string {
   const digits = raw.replace(/[^0-9]/g, '');

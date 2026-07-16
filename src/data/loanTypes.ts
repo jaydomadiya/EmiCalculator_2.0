@@ -1,3 +1,5 @@
+import { CATEGORY_PALETTE } from '../theme/colors';
+
 export type LoanType = {
   key: string;
   labelKey: string;
@@ -22,16 +24,7 @@ export type LoanType = {
   defaultMoratoriumMonths?: number;
 };
 
-const PALETTE = {
-  emerald: '#1E8F5E',
-  amber: '#D9822B',
-  indigo: '#4C5FD5',
-  rose: '#D5567C',
-  plum: '#9B4F8C',
-  gold: '#B8860B',
-  sky: '#2F86EB',
-  coral: '#E2673F',
-};
+const PALETTE = CATEGORY_PALETTE;
 
 export const LOAN_TYPES: LoanType[] = [
   {

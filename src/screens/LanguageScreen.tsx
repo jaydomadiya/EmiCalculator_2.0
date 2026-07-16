@@ -5,18 +5,19 @@ import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES, LanguageOption } from '../i18n/languages';
+import { THEME, hexToRgba } from '../theme/colors';
 
 const COLORS = {
-  headerFrom: '#0B3D2E',
-  headerTo: '#12594A',
-  screenBg: '#FBFCFB',
-  cardBorder: '#E7EBE9',
-  cardBorderActive: '#1E8F5E',
-  cardBg: '#FFFFFF',
-  cardBgActive: '#EAF8F0',
-  text: '#132420',
-  radioInactive: '#C7D0CC',
-  radioActive: '#1E8F5E',
+  headerFrom: THEME.headerFrom,
+  headerTo: THEME.headerTo,
+  screenBg: THEME.screenBg,
+  cardBorder: THEME.border,
+  cardBorderActive: THEME.primary,
+  cardBg: THEME.cardBg,
+  cardBgActive: hexToRgba(THEME.primary, 0.08),
+  text: THEME.text,
+  radioInactive: '#C9CFC7',
+  radioActive: THEME.primary,
 };
 
 type Props = {

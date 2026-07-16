@@ -6,19 +6,20 @@ import { useTranslation } from 'react-i18next';
 import { getLoanType } from '../data/loanTypes';
 import { CalculationResult, LoanFormState } from '../types/loan';
 import { formatCurrency, formatDate } from '../utils/emi';
+import { THEME, CHART_PALETTE } from '../theme/colors';
 
 const COLORS = {
-  headerFrom: '#0B3D2E',
-  headerTo: '#12594A',
-  screenBg: '#FBFCFB',
-  text: '#132420',
-  subtext: '#5F6E68',
-  border: '#ECEFEE',
-  principal: '#1E8F5E',
-  interest: '#D9822B',
-  tax: '#4C5FD5',
-  pmi: '#D5567C',
-  hoa: '#9B4F8C',
+  headerFrom: THEME.headerFrom,
+  headerTo: THEME.headerTo,
+  screenBg: THEME.screenBg,
+  text: THEME.text,
+  subtext: THEME.subtext,
+  border: THEME.border,
+  principal: CHART_PALETTE.principal,
+  interest: CHART_PALETTE.interest,
+  tax: CHART_PALETTE.tax,
+  pmi: CHART_PALETTE.pmi,
+  hoa: CHART_PALETTE.hoa,
 };
 
 type Props = {

@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { StatusBar } from 'react-native';
+import { BackHandler, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,17 +22,32 @@ import {
   calculateMortgagePayment,
   tenureToMonths,
 } from './src/utils/emi';
-import HomeScreen from './src/screens/HomeScreen';
+import CryptoConverterScreen from './src/screens/CryptoConverterScreen';
+import CurrencyConverterScreen from './src/screens/CurrencyConverterScreen';
+import CurrencyListScreen from './src/screens/CurrencyListScreen';
+import CustomRateScreen from './src/screens/CustomRateScreen';
+import HomeScreen, { ConverterTool } from './src/screens/HomeScreen';
 import LanguageScreen from './src/screens/LanguageScreen';
 import LoanCalculatorScreen from './src/screens/LoanCalculatorScreen';
 import LoanResultScreen from './src/screens/LoanResultScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
+import { THEME } from './src/theme/colors';
 
 SplashScreen.preventAutoHideAsync();
 
 const LANGUAGE_STORAGE_KEY = 'emi_calculator_selected_language';
 
-type Screen = 'loading' | 'onboarding' | 'language' | 'home' | 'calculator' | 'result';
+type Screen =
+  | 'loading'
+  | 'onboarding'
+  | 'language'
+  | 'home'
+  | 'calculator'
+  | 'result'
+  | 'currencyConverter'
+  | 'cryptoConverter'
+  | 'customRate'
+  | 'currencyList';
 
 function buildFormForLoanType(loanTypeKey: string): LoanFormState {
   const loanType = getLoanType(loanTypeKey);
@@ -99,6 +114,30 @@ function App() {
     bootstrap();
   }, [i18n]);
 
+  useEffect(() => {
+    const handleHardwareBack = () => {
+      switch (screen) {
+        case 'result':
+          setScreen('calculator');
+          return true;
+        case 'calculator':
+        case 'currencyConverter':
+        case 'cryptoConverter':
+        case 'customRate':
+        case 'currencyList':
+          setScreen('home');
+          return true;
+        default:
+          // On 'home', 'onboarding', 'language', and 'loading' there is no
+          // in-app previous step, so let the OS handle it (exits the app).
+          return false;
+      }
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', handleHardwareBack);
+    return () => subscription.remove();
+  }, [screen]);
+
   const handleLanguageSelected = async (languageCode: string) => {
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
     await i18n.changeLanguage(languageCode);
@@ -108,6 +147,10 @@ function App() {
   const handleOpenLoanCalculator = (loanTypeKey: string) => {
     setLoanForm(buildFormForLoanType(loanTypeKey));
     setScreen('calculator');
+  };
+
+  const handleOpenConverterTool = (tool: ConverterTool) => {
+    setScreen(tool);
   };
 
   const handleSelectLoanType = (loanTypeKey: string) => {
@@ -178,7 +221,7 @@ function App() {
     <SafeAreaProvider>
       <StatusBar
         barStyle={isOnboardingScreen ? 'dark-content' : 'light-content'}
-        backgroundColor={isOnboardingScreen ? '#FBFCFB' : '#0B3D2E'}
+        backgroundColor={isOnboardingScreen ? THEME.screenBg : THEME.headerFrom}
       />
       {screen === 'onboarding' && (
         <OnboardingScreen onFinish={() => setScreen('language')} />
@@ -187,7 +230,20 @@ function App() {
         <LanguageScreen onContinue={handleLanguageSelected} />
       )}
       {screen === 'home' && (
-        <HomeScreen onOpenLoanCalculator={handleOpenLoanCalculator} />
+        <HomeScreen
+          onOpenLoanCalculator={handleOpenLoanCalculator}
+          onOpenConverterTool={handleOpenConverterTool}
+        />
+      )}
+      {screen === 'currencyConverter' && (
+        <CurrencyConverterScreen onBack={() => setScreen('home')} />
+      )}
+      {screen === 'cryptoConverter' && (
+        <CryptoConverterScreen onBack={() => setScreen('home')} />
+      )}
+      {screen === 'customRate' && <CustomRateScreen onBack={() => setScreen('home')} />}
+      {screen === 'currencyList' && (
+        <CurrencyListScreen onBack={() => setScreen('home')} />
       )}
       {screen === 'calculator' && loanForm && (
         <LoanCalculatorScreen

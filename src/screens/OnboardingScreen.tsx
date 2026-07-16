@@ -12,27 +12,20 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { THEME, CATEGORY_PALETTE, hexToRgba } from '../theme/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
-  screenBg: '#FBFCFB',
-  primary: '#1E8F5E',
-  primaryDark: '#0B3D2E',
-  gold: '#B8860B',
-  text: '#132420',
-  subtext: '#5F6E68',
-  dotInactive: '#DCE4E0',
-  border: '#ECEFEE',
+  screenBg: THEME.screenBg,
+  primary: THEME.primary,
+  primaryDark: THEME.primaryDark,
+  gold: THEME.gold,
+  text: THEME.text,
+  subtext: THEME.subtext,
+  dotInactive: THEME.dotInactive,
+  border: THEME.border,
 };
-
-function hexToRgba(hex: string, alpha: number): string {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 type Satellite = {
   icon: string;
@@ -59,8 +52,8 @@ const SLIDES: Slide[] = [
     satellites: [
       { icon: 'lightbulb-on-outline', color: COLORS.gold, top: 4, left: 62 },
       { icon: 'cog-outline', color: COLORS.primary, top: 40, left: 0 },
-      { icon: 'swap-horizontal', color: '#4C5FD5', top: 100, left: 10 },
-      { icon: 'percent-outline', color: '#D5567C', top: 104, left: 112 },
+      { icon: 'swap-horizontal', color: CATEGORY_PALETTE.indigo, top: 100, left: 10 },
+      { icon: 'percent-outline', color: CATEGORY_PALETTE.rose, top: 104, left: 112 },
     ],
     title: 'Smart Financial Tools',
     description:
@@ -69,11 +62,11 @@ const SLIDES: Slide[] = [
   {
     key: 'convert-pro',
     mainIcon: 'currency-usd',
-    mainColor: '#D9822B',
+    mainColor: CATEGORY_PALETTE.amber,
     satellites: [
       { icon: 'currency-inr', color: COLORS.primary, top: 0, left: 8 },
-      { icon: 'currency-jpy', color: '#D5567C', top: 0, left: 120 },
-      { icon: 'currency-eur', color: '#4C5FD5', top: 112, left: 122 },
+      { icon: 'currency-jpy', color: CATEGORY_PALETTE.rose, top: 0, left: 120 },
+      { icon: 'currency-eur', color: CATEGORY_PALETTE.indigo, top: 112, left: 122 },
       { icon: 'currency-gbp', color: COLORS.gold, top: 116, left: 6 },
       { icon: 'currency-btc', color: COLORS.gold, top: 58, left: 138, size: 22 },
     ],
@@ -86,7 +79,7 @@ const SLIDES: Slide[] = [
     mainIcon: 'cellphone',
     mainColor: COLORS.primaryDark,
     satellites: [
-      { icon: 'wifi-off', color: '#D5567C', top: 26, left: 68 },
+      { icon: 'wifi-off', color: CATEGORY_PALETTE.rose, top: 26, left: 68 },
       { icon: 'cash', color: COLORS.gold, top: 110, left: 8 },
       { icon: 'wallet-outline', color: COLORS.primary, top: 110, left: 122 },
     ],
@@ -100,8 +93,8 @@ const SLIDES: Slide[] = [
     mainColor: COLORS.primary,
     satellites: [
       { icon: 'magnify', color: COLORS.gold, top: 16, left: 116 },
-      { icon: 'cash-multiple', color: '#D9822B', top: 108, left: 4 },
-      { icon: 'calculator-variant', color: '#4C5FD5', top: 108, left: 122 },
+      { icon: 'cash-multiple', color: CATEGORY_PALETTE.amber, top: 108, left: 4 },
+      { icon: 'calculator-variant', color: CATEGORY_PALETTE.indigo, top: 108, left: 122 },
     ],
     title: 'Watch the Trends',
     description:
@@ -329,7 +322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
-    shadowColor: '#0B3D2E',
+    shadowColor: THEME.headerFrom,
     shadowOpacity: 0.12,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
