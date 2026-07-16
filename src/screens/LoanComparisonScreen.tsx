@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -12,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { THEME, hexToRgba } from '../theme/colors';
 import { LoanComparisonOptionInput, LoanComparisonResult } from '../types/loanComparison';
 import { calculateEmi, formatCurrency, tenureToMonths } from '../utils/emi';
@@ -232,12 +232,11 @@ function LoanComparisonScreen({ onBack, onCalculate }: Props) {
         style={styles.keyboardAvoider}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.scroll}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 104 }]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          extraKeyboardSpace={34}
         >
           <View style={styles.heroCard}>
             <View style={styles.heroIconWrap}>
@@ -298,7 +297,7 @@ function LoanComparisonScreen({ onBack, onCalculate }: Props) {
             For planning purposes only. Actual lender charges, taxes and fees may change the final
             repayment amount.
           </Text>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
     </View>
   );

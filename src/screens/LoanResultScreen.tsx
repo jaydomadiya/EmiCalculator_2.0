@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 17,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 24,
     marginBottom: 12,
   },
   doneButtonText: {

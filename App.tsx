@@ -4,7 +4,7 @@
  * @format
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BackHandler, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
@@ -23,18 +23,27 @@ import {
   tenureToMonths,
 } from './src/utils/emi';
 import CryptoConverterScreen from './src/screens/CryptoConverterScreen';
+import ChartScreen from './src/screens/ChartScreen';
 import CurrencyConverterScreen from './src/screens/CurrencyConverterScreen';
 import CurrencyListScreen from './src/screens/CurrencyListScreen';
 import CustomRateScreen from './src/screens/CustomRateScreen';
 import HomeScreen, { ConverterTool } from './src/screens/HomeScreen';
+import HomeAffordabilityScreen from './src/screens/HomeAffordabilityScreen';
+import InvestmentCalculatorScreen from './src/screens/InvestmentCalculatorScreen';
 import LanguageScreen from './src/screens/LanguageScreen';
+import LoanAnalysisScreen from './src/screens/LoanAnalysisScreen';
 import LoanCalculatorScreen from './src/screens/LoanCalculatorScreen';
 import LoanComparisonScreen from './src/screens/LoanComparisonScreen';
 import LoanComparisonResultScreen from './src/screens/LoanComparisonResultScreen';
 import LoanResultScreen from './src/screens/LoanResultScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
+import OtherCalculatorScreen from './src/screens/OtherCalculatorScreen';
+import SavingsGoalScreen from './src/screens/SavingsGoalScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import { THEME } from './src/theme/colors';
 import { LoanComparisonResult } from './src/types/loanComparison';
+import { InvestmentTool } from './src/types/investment';
+import { OtherCalculatorTool } from './src/types/otherCalculator';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -51,8 +60,16 @@ type Screen =
   | 'cryptoConverter'
   | 'customRate'
   | 'currencyList'
+  | 'chart'
+  | 'settings'
+  | 'settingsLanguage'
   | 'loanComparison'
-  | 'loanComparisonResult';
+  | 'loanComparisonResult'
+  | 'loanAnalysis'
+  | 'homeAffordability'
+  | 'savingsGoal'
+  | 'investmentCalculator'
+  | 'otherCalculator';
 
 function buildFormForLoanType(loanTypeKey: string): LoanFormState {
   const loanType = getLoanType(loanTypeKey);
@@ -97,23 +114,31 @@ function buildFormForLoanType(loanTypeKey: string): LoanFormState {
 
 function App() {
   const { i18n } = useTranslation();
+  const didBootstrap = useRef(false);
   const [screen, setScreen] = useState<Screen>('loading');
   const [loanForm, setLoanForm] = useState<LoanFormState | null>(null);
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
   const [loanComparisonResult, setLoanComparisonResult] =
     useState<LoanComparisonResult | null>(null);
+  const [investmentTool, setInvestmentTool] = useState<InvestmentTool>('fixedDeposit');
+  const [otherCalculatorTool, setOtherCalculatorTool] =
+    useState<OtherCalculatorTool>('creditCardPayoff');
 
   useEffect(() => {
     const bootstrap = async () => {
+      if (didBootstrap.current) {
+        return;
+      }
+      didBootstrap.current = true;
+
       const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
 
       if (savedLanguage) {
         await i18n.changeLanguage(savedLanguage);
-        setScreen('home');
       } else {
         await i18n.changeLanguage(DEFAULT_LANGUAGE_CODE);
-        setScreen('onboarding');
       }
+      setScreen('onboarding');
 
       await SplashScreen.hideAsync();
     };
@@ -135,8 +160,18 @@ function App() {
         case 'cryptoConverter':
         case 'customRate':
         case 'currencyList':
+        case 'chart':
+        case 'settings':
         case 'loanComparison':
+        case 'loanAnalysis':
+        case 'homeAffordability':
+        case 'savingsGoal':
+        case 'investmentCalculator':
+        case 'otherCalculator':
           setScreen('home');
+          return true;
+        case 'settingsLanguage':
+          setScreen('settings');
           return true;
         default:
           // On 'home', 'onboarding', 'language', and 'loading' there is no
@@ -163,6 +198,26 @@ function App() {
   const handleOpenConverterTool = (tool: ConverterTool) => {
     if (tool === 'loanComparison') {
       setLoanComparisonResult(null);
+    }
+    if (
+      tool === 'fixedDeposit' ||
+      tool === 'recurringDeposit' ||
+      tool === 'sipCalculator' ||
+      tool === 'returnOnInvestment'
+    ) {
+      setInvestmentTool(tool);
+      setScreen('investmentCalculator');
+      return;
+    }
+    if (
+      tool === 'creditCardPayoff' ||
+      tool === 'creditCardMinPayment' ||
+      tool === 'breakEvenSellPrice' ||
+      tool === 'compoundInterest'
+    ) {
+      setOtherCalculatorTool(tool);
+      setScreen('otherCalculator');
+      return;
     }
     setScreen(tool);
   };
@@ -243,6 +298,16 @@ function App() {
       {screen === 'language' && (
         <LanguageScreen onContinue={handleLanguageSelected} />
       )}
+      {screen === 'settingsLanguage' && (
+        <LanguageScreen
+          onBack={() => setScreen('settings')}
+          onContinue={async languageCode => {
+            await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
+            await i18n.changeLanguage(languageCode);
+            setScreen('settings');
+          }}
+        />
+      )}
       {screen === 'home' && (
         <HomeScreen
           onOpenLoanCalculator={handleOpenLoanCalculator}
@@ -259,6 +324,23 @@ function App() {
       {screen === 'currencyList' && (
         <CurrencyListScreen onBack={() => setScreen('home')} />
       )}
+      {screen === 'chart' && (
+        <ChartScreen
+          onBackHome={() => setScreen('home')}
+          onOpenConvert={() => setScreen('currencyConverter')}
+          onOpenCalculator={() => handleOpenLoanCalculator('personalLoan')}
+          onOpenSettings={() => setScreen('settings')}
+        />
+      )}
+      {screen === 'settings' && (
+        <SettingsScreen
+          onBackHome={() => setScreen('home')}
+          onOpenLanguage={() => setScreen('settingsLanguage')}
+          onOpenConvert={() => setScreen('currencyConverter')}
+          onOpenChart={() => setScreen('chart')}
+          onOpenCalculator={() => handleOpenLoanCalculator('personalLoan')}
+        />
+      )}
       {screen === 'loanComparison' && (
         <LoanComparisonScreen
           onBack={() => setScreen('home')}
@@ -273,6 +355,27 @@ function App() {
           result={loanComparisonResult}
           onBack={() => setScreen('loanComparison')}
           onDone={() => setScreen('home')}
+        />
+      )}
+      {screen === 'loanAnalysis' && (
+        <LoanAnalysisScreen onBack={() => setScreen('home')} />
+      )}
+      {screen === 'homeAffordability' && (
+        <HomeAffordabilityScreen onBack={() => setScreen('home')} />
+      )}
+      {screen === 'savingsGoal' && (
+        <SavingsGoalScreen onBack={() => setScreen('home')} />
+      )}
+      {screen === 'investmentCalculator' && (
+        <InvestmentCalculatorScreen
+          tool={investmentTool}
+          onBack={() => setScreen('home')}
+        />
+      )}
+      {screen === 'otherCalculator' && (
+        <OtherCalculatorScreen
+          tool={otherCalculatorTool}
+          onBack={() => setScreen('home')}
         />
       )}
       {screen === 'calculator' && loanForm && (

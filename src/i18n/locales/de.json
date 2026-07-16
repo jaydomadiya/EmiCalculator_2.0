@@ -1,6 +1,11 @@
 {
   "common": {
-    "appTitle": "EMI - Finanzrechner"
+    "appTitle": "EMI Studio",
+    "appEyebrow": "Finance Suite",
+    "appSubtitle": "Smarte Tools für Kredit, Geld und Planung.",
+    "headerQuickEmi": "EMI",
+    "headerConvert": "Convert",
+    "headerPlan": "Plan"
   },
   "banner": {
     "title": "KI Persönlicher\nFinanzassistent",

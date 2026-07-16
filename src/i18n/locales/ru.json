@@ -1,6 +1,11 @@
 {
   "common": {
-    "appTitle": "EMI - Финансовый калькулятор"
+    "appTitle": "EMI Studio",
+    "appEyebrow": "Finance Suite",
+    "appSubtitle": "Инструменты для кредитов, денег и планов.",
+    "headerQuickEmi": "EMI",
+    "headerConvert": "Convert",
+    "headerPlan": "Plan"
   },
   "banner": {
     "title": "ИИ Личный\nфинансовый помощник",

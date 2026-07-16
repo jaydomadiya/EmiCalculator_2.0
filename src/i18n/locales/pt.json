@@ -1,6 +1,11 @@
 {
   "common": {
-    "appTitle": "EMI - Calculadora Financeira"
+    "appTitle": "EMI Studio",
+    "appEyebrow": "Finance Suite",
+    "appSubtitle": "Ferramentas para crédito, dinheiro e planos.",
+    "headerQuickEmi": "EMI",
+    "headerConvert": "Convert",
+    "headerPlan": "Plan"
   },
   "banner": {
     "title": "Assistente Financeiro\nPessoal com IA",

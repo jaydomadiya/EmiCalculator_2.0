@@ -10,26 +10,53 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FAF9F6"
+      "backgroundColor": "#DFF4EA"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#DFF4EA"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
       "package": "com.aryan_raval.EMICalculator"
+    },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#DFF4EA",
+      "translucent": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "@react-native-community/datetimepicker",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#DFF4EA",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 260,
+          "resizeMode": "contain",
+          "android": {
+            "backgroundColor": "#DFF4EA",
+            "image": "./assets/splash-icon.png",
+            "imageWidth": 260,
+            "resizeMode": "contain"
+          },
+          "ios": {
+            "backgroundColor": "#DFF4EA",
+            "image": "./assets/splash-icon.png",
+            "imageWidth": 260,
+            "resizeMode": "contain"
+          }
+        }
+      ]
     ]
   }
 }

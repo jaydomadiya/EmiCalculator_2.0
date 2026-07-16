@@ -1,6 +1,11 @@
 {
   "common": {
-    "appTitle": "EMI - 财务计算器"
+    "appTitle": "EMI Studio",
+    "appEyebrow": "Finance Suite",
+    "appSubtitle": "贷款、资金与规划的智能工具。",
+    "headerQuickEmi": "EMI",
+    "headerConvert": "Convert",
+    "headerPlan": "Plan"
   },
   "banner": {
     "title": "AI 个人\n财务助手",

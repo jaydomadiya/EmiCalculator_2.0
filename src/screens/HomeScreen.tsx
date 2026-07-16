@@ -12,7 +12,20 @@ export type ConverterTool =
   | 'cryptoConverter'
   | 'customRate'
   | 'currencyList'
-  | 'loanComparison';
+  | 'chart'
+  | 'settings'
+  | 'loanComparison'
+  | 'loanAnalysis'
+  | 'homeAffordability'
+  | 'savingsGoal'
+  | 'fixedDeposit'
+  | 'recurringDeposit'
+  | 'sipCalculator'
+  | 'returnOnInvestment'
+  | 'creditCardPayoff'
+  | 'creditCardMinPayment'
+  | 'breakEvenSellPrice'
+  | 'compoundInterest';
 
 type TileItem = {
   labelKey: string;
@@ -59,27 +72,27 @@ const SECTIONS: Section[] = [
         color: PALETTE.violet,
         action: 'loanComparison',
       },
-      { labelKey: 'tiles.loanAnalysis', icon: 'chart-line-variant', color: PALETTE.teal },
-      { labelKey: 'tiles.homeAffordability', icon: 'home-search-outline', color: PALETTE.indigo },
-      { labelKey: 'tiles.savingsGoal', icon: 'piggy-bank-outline', color: PALETTE.rose },
+      { labelKey: 'tiles.loanAnalysis', icon: 'chart-line-variant', color: PALETTE.teal, action: 'loanAnalysis' },
+      { labelKey: 'tiles.homeAffordability', icon: 'home-search-outline', color: PALETTE.indigo, action: 'homeAffordability' },
+      { labelKey: 'tiles.savingsGoal', icon: 'piggy-bank-outline', color: PALETTE.rose, action: 'savingsGoal' },
     ],
   },
   {
     titleKey: 'sections.investment',
     items: [
-      { labelKey: 'tiles.fixedDeposit', icon: 'bank-outline', color: PALETTE.emerald },
-      { labelKey: 'tiles.recurringDeposit', icon: 'calendar-sync-outline', color: PALETTE.sky },
-      { labelKey: 'tiles.sipCalculator', icon: 'chart-donut', color: PALETTE.gold },
-      { labelKey: 'tiles.returnOnInvestment', icon: 'trending-up', color: PALETTE.coral },
+      { labelKey: 'tiles.fixedDeposit', icon: 'bank-outline', color: PALETTE.emerald, action: 'fixedDeposit' },
+      { labelKey: 'tiles.recurringDeposit', icon: 'calendar-sync-outline', color: PALETTE.sky, action: 'recurringDeposit' },
+      { labelKey: 'tiles.sipCalculator', icon: 'chart-donut', color: PALETTE.gold, action: 'sipCalculator' },
+      { labelKey: 'tiles.returnOnInvestment', icon: 'trending-up', color: PALETTE.coral, action: 'returnOnInvestment' },
     ],
   },
 ];
 
 const OTHER_CALCULATORS: TileItem[] = [
-  { labelKey: 'tiles.creditCardPayoff', icon: 'credit-card-check-outline', color: PALETTE.emerald },
-  { labelKey: 'tiles.creditCardMinPayment', icon: 'credit-card-clock-outline', color: PALETTE.rose },
-  { labelKey: 'tiles.breakEvenSellPrice', icon: 'tag-outline', color: PALETTE.amber },
-  { labelKey: 'tiles.compoundInterest', icon: 'percent-outline', color: PALETTE.violet },
+  { labelKey: 'tiles.creditCardPayoff', icon: 'credit-card-check-outline', color: PALETTE.emerald, action: 'creditCardPayoff' },
+  { labelKey: 'tiles.creditCardMinPayment', icon: 'credit-card-clock-outline', color: PALETTE.rose, action: 'creditCardMinPayment' },
+  { labelKey: 'tiles.breakEvenSellPrice', icon: 'tag-outline', color: PALETTE.amber, action: 'breakEvenSellPrice' },
+  { labelKey: 'tiles.compoundInterest', icon: 'percent-outline', color: PALETTE.violet, action: 'compoundInterest' },
 ];
 
 const NAV_ITEMS = [
@@ -162,7 +175,13 @@ function GridSection({
   );
 }
 
-function OtherCalculatorsCard({ t }: { t: (key: string) => string }) {
+function OtherCalculatorsCard({
+  t,
+  onOpenConverterTool,
+}: {
+  t: (key: string) => string;
+  onOpenConverterTool: (tool: ConverterTool) => void;
+}) {
   return (
     <View style={styles.section}>
       <SectionHeading label={t('sections.other')} />
@@ -172,6 +191,7 @@ function OtherCalculatorsCard({ t }: { t: (key: string) => string }) {
             key={item.labelKey}
             style={styles.otherItem}
             activeOpacity={0.7}
+            onPress={item.action ? () => onOpenConverterTool(item.action as ConverterTool) : undefined}
           >
             <View
               style={[
@@ -196,11 +216,15 @@ function BottomNav({
   t,
   onPressFab,
   onPressConvert,
+  onPressChart,
+  onPressSettings,
 }: {
   insetBottom: number;
   t: (key: string) => string;
   onPressFab: () => void;
   onPressConvert: () => void;
+  onPressChart: () => void;
+  onPressSettings: () => void;
 }) {
   return (
     <View style={[styles.navBar, { paddingBottom: insetBottom }]}>
@@ -216,7 +240,19 @@ function BottomNav({
         ))}
         <View style={styles.fabSpacer} />
         {NAV_ITEMS.slice(2).map(navItem => (
-          <NavButton key={navItem.key} navItem={navItem} active={false} label={t(navItem.labelKey)} />
+          <NavButton
+            key={navItem.key}
+            navItem={navItem}
+            active={false}
+            label={t(navItem.labelKey)}
+            onPress={
+              navItem.key === 'chart'
+                ? onPressChart
+                : navItem.key === 'settings'
+                  ? onPressSettings
+                  : undefined
+            }
+          />
         ))}
       </View>
       <TouchableOpacity activeOpacity={0.85} style={styles.fabWrap} onPress={onPressFab}>
@@ -279,12 +315,27 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
       >
         <Icon
           name="finance"
-          size={128}
+          size={74}
           color="rgba(255,255,255,0.06)"
           style={styles.headerWatermark}
         />
-        <Text style={styles.headerTitle}>{t('common.appTitle')}</Text>
-        <View style={styles.headerAccent} />
+        <View style={styles.headerTopRow}>
+          <View style={styles.brandMark}>
+            <LinearGradient
+              colors={['#F6E7B4', '#BFEBDD']}
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={styles.brandMarkGradient}
+            >
+              <Icon name="bank-check" size={24} color={COLORS.headerFrom} />
+            </LinearGradient>
+          </View>
+          <View style={styles.headerCopy}>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {t('common.appTitle')}
+            </Text>
+          </View>
+        </View>
       </LinearGradient>
 
       <ScrollView
@@ -302,7 +353,7 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
           />
         ))}
 
-        <OtherCalculatorsCard t={t} />
+        <OtherCalculatorsCard t={t} onOpenConverterTool={onOpenConverterTool} />
       </ScrollView>
 
       <BottomNav
@@ -310,6 +361,8 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
         t={t}
         onPressFab={() => onOpenLoanCalculator(DEFAULT_FAB_LOAN_TYPE)}
         onPressConvert={() => onOpenConverterTool('currencyConverter')}
+        onPressChart={() => onOpenConverterTool('chart')}
+        onPressSettings={() => onOpenConverterTool('settings')}
       />
     </View>
   );
@@ -321,10 +374,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.screenBg,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    paddingHorizontal: 18,
+    paddingBottom: 13,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
     overflow: 'hidden',
     elevation: 6,
     shadowColor: COLORS.headerFrom,
@@ -334,32 +387,48 @@ const styles = StyleSheet.create({
   },
   headerWatermark: {
     position: 'absolute',
-    top: -24,
-    right: -18,
+    top: -8,
+    right: -10,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  brandMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    padding: 2,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  brandMarkGradient: {
+    flex: 1,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerCopy: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 21,
+    fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: 0.2,
-  },
-  headerAccent: {
-    width: 36,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.gold,
-    marginTop: 10,
+    letterSpacing: 0,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 22,
+    paddingHorizontal: 14,
+    paddingTop: 18,
     paddingBottom: 24,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
   sectionHeadingRow: {
     flexDirection: 'row',
@@ -382,9 +451,9 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: COLORS.cardBg,
-    borderRadius: 20,
-    padding: 16,
-    paddingBottom: 4,
+    borderRadius: 16,
+    padding: 14,
+    paddingBottom: 2,
     borderWidth: 1,
     borderColor: COLORS.border,
     elevation: 1,
@@ -404,9 +473,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   tileIconCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -422,7 +491,7 @@ const styles = StyleSheet.create({
   otherCard: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 20,
+    borderRadius: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
     backgroundColor: COLORS.cardBg,

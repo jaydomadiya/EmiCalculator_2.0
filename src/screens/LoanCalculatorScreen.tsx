@@ -3,7 +3,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -15,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { LOAN_TYPES, LoanType, getLoanType } from '../data/loanTypes';
 import {
   LoanFormPatch,
@@ -462,12 +462,11 @@ function LoanCalculatorScreen({
         style={styles.keyboardAvoider}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.scroll}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 96 }]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          extraKeyboardSpace={34}
         >
           <FieldLabel>Loan Type</FieldLabel>
           <TouchableOpacity
@@ -501,7 +500,7 @@ function LoanCalculatorScreen({
           >
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
 
       <Modal

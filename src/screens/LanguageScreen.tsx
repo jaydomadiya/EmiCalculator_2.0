@@ -22,9 +22,10 @@ const COLORS = {
 
 type Props = {
   onContinue: (languageCode: string) => void;
+  onBack?: () => void;
 };
 
-function LanguageScreen({ onContinue }: Props) {
+function LanguageScreen({ onContinue, onBack }: Props) {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const [selected, setSelected] = useState(i18n.language);
@@ -37,6 +38,11 @@ function LanguageScreen({ onContinue }: Props) {
         end={{ x: 1, y: 1 }}
         style={[styles.header, { paddingTop: insets.top + 8 }]}
       >
+        {onBack ? (
+          <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={onBack}>
+            <Icon name="arrow-left" size={25} color="#FFFFFF" />
+          </TouchableOpacity>
+        ) : null}
         <Text style={styles.headerTitle}>{t('language.title')}</Text>
         <TouchableOpacity
           style={styles.confirmButton}
@@ -106,9 +112,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerTitle: {
+    flex: 1,
     fontSize: 22,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  backButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   confirmButton: {
     width: 36,

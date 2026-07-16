@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -12,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { CurrencyBadge, getSelectionMeta } from '../components/CurrencyBadge';
 import CurrencyPickerModal from '../components/CurrencyPickerModal';
 import { CRYPTO_CURRENCIES } from '../data/cryptoCurrencies';
@@ -124,12 +124,11 @@ function CustomRateScreen({ onBack }: Props) {
         style={styles.keyboardAvoider}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.body}
           contentContainerStyle={[styles.bodyContent, { paddingBottom: insets.bottom + 96 }]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          extraKeyboardSpace={34}
         >
           <View style={styles.rateCard}>
             <View style={styles.rateCardTopRow}>
@@ -260,7 +259,7 @@ function CustomRateScreen({ onBack }: Props) {
             shared, saved to a server, or used elsewhere in the app — for reference and planning
             purposes only.
           </Text>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
 
       <CurrencyPickerModal

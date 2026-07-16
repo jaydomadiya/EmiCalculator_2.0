@@ -1,6 +1,11 @@
 {
   "common": {
-    "appTitle": "EMI - 財務計算機"
+    "appTitle": "EMI Studio",
+    "appEyebrow": "Finance Suite",
+    "appSubtitle": "ローン、資金、計画のスマートツール。",
+    "headerQuickEmi": "EMI",
+    "headerConvert": "Convert",
+    "headerPlan": "Plan"
   },
   "banner": {
     "title": "AIパーソナル\nファイナンシャルアシスタント",

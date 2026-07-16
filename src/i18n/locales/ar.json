@@ -1,6 +1,11 @@
 {
   "common": {
-    "appTitle": "EMI - الآلة الحاسبة المالية"
+    "appTitle": "EMI Studio",
+    "appEyebrow": "Finance Suite",
+    "appSubtitle": "أدوات ذكية للقروض والمال والتخطيط.",
+    "headerQuickEmi": "EMI",
+    "headerConvert": "Convert",
+    "headerPlan": "Plan"
   },
   "banner": {
     "title": "مساعد مالي شخصي\nبالذكاء الاصطناعي",
