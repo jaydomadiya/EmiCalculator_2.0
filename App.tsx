@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import mobileAds from 'react-native-google-mobile-ads';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +45,7 @@ import { THEME } from './src/theme/colors';
 import { LoanComparisonResult } from './src/types/loanComparison';
 import { InvestmentTool } from './src/types/investment';
 import { OtherCalculatorTool } from './src/types/otherCalculator';
+import { AdsProvider, useAds } from './src/ads/AdsProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -112,8 +114,9 @@ function buildFormForLoanType(loanTypeKey: string): LoanFormState {
   };
 }
 
-function App() {
+function AppContent() {
   const { i18n } = useTranslation();
+  const { registerInteraction } = useAds();
   const didBootstrap = useRef(false);
   const [screen, setScreen] = useState<Screen>('loading');
   const [loanForm, setLoanForm] = useState<LoanFormState | null>(null);
@@ -130,6 +133,10 @@ function App() {
         return;
       }
       didBootstrap.current = true;
+
+      mobileAds()
+        .initialize()
+        .catch(() => undefined);
 
       const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
 
@@ -148,6 +155,10 @@ function App() {
 
   useEffect(() => {
     const handleHardwareBack = () => {
+      const exitScreens = ['home', 'onboarding', 'language', 'loading'];
+      if (!exitScreens.includes(screen)) {
+        registerInteraction('back');
+      }
       switch (screen) {
         case 'result':
           setScreen('calculator');
@@ -182,7 +193,7 @@ function App() {
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', handleHardwareBack);
     return () => subscription.remove();
-  }, [screen]);
+  }, [screen, registerInteraction]);
 
   const handleLanguageSelected = async (languageCode: string) => {
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
@@ -191,11 +202,13 @@ function App() {
   };
 
   const handleOpenLoanCalculator = (loanTypeKey: string) => {
+    registerInteraction('click');
     setLoanForm(buildFormForLoanType(loanTypeKey));
     setScreen('calculator');
   };
 
   const handleOpenConverterTool = (tool: ConverterTool) => {
+    registerInteraction('click');
     if (tool === 'loanComparison') {
       setLoanComparisonResult(null);
     }
@@ -240,6 +253,8 @@ function App() {
     if (!loanForm) {
       return;
     }
+
+    registerInteraction('click');
 
     if (loanForm.variant === 'mortgage') {
       const mortgageResult = calculateMortgagePayment(
@@ -287,7 +302,7 @@ function App() {
   const isOnboardingScreen = screen === 'onboarding';
 
   return (
-    <SafeAreaProvider>
+    <>
       <StatusBar
         barStyle={isOnboardingScreen ? 'dark-content' : 'light-content'}
         backgroundColor={isOnboardingScreen ? THEME.screenBg : THEME.headerFrom}
@@ -396,6 +411,16 @@ function App() {
           onDone={() => setScreen('home')}
         />
       )}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <SafeAreaProvider>
+      <AdsProvider>
+        <AppContent />
+      </AdsProvider>
     </SafeAreaProvider>
   );
 }

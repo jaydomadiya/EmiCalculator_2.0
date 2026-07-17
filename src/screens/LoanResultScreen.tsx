@@ -7,6 +7,8 @@ import { getLoanType } from '../data/loanTypes';
 import { CalculationResult, LoanFormState } from '../types/loan';
 import { formatCurrency, formatDate } from '../utils/emi';
 import { THEME, CHART_PALETTE } from '../theme/colors';
+import AdBanner from '../ads/AdBanner';
+import NativeAdCard from '../ads/NativeAdCard';
 
 const COLORS = {
   headerFrom: THEME.headerFrom,
@@ -372,12 +374,16 @@ function LoanResultScreen({ form, result, onBack, onDone }: Props) {
           <MortgageResultBody form={form} data={result.data} />
         )}
 
+        <NativeAdCard placement="article" />
+
         <TouchableOpacity style={styles.doneButton} activeOpacity={0.85} onPress={onDone}>
           <Text style={styles.doneButtonText}>Done</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      <View style={[styles.adSlot, { paddingBottom: insets.bottom }]} />
+      <View style={[styles.adSlot, { paddingBottom: insets.bottom }]}>
+        <AdBanner placement="article" />
+      </View>
     </View>
   );
 }
@@ -540,7 +546,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   adSlot: {
-    height: 60,
+    minHeight: 60,
     backgroundColor: COLORS.screenBg,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

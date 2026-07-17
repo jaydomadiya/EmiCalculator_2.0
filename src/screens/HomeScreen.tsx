@@ -1,5 +1,9 @@
+import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AdBanner from '../ads/AdBanner';
+import NativeAdCard from '../ads/NativeAdCard';
+import { useAds } from '../ads/AdsProvider';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -304,6 +308,11 @@ type HomeScreenProps = {
 function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenProps) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { maybeShowHomePopup } = useAds();
+
+  useEffect(() => {
+    maybeShowHomePopup();
+  }, [maybeShowHomePopup]);
 
   return (
     <View style={styles.screen}>
@@ -354,6 +363,10 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
         ))}
 
         <OtherCalculatorsCard t={t} onOpenConverterTool={onOpenConverterTool} />
+
+        <NativeAdCard placement="home" />
+
+        <AdBanner placement="home" />
       </ScrollView>
 
       <BottomNav

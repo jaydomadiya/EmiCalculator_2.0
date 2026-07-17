@@ -25,6 +25,7 @@ import {
 } from '../types/loan';
 import { formatDate } from '../utils/emi';
 import { THEME, hexToRgba } from '../theme/colors';
+import AdBanner from '../ads/AdBanner';
 
 const COLORS = {
   headerFrom: THEME.headerFrom,
@@ -502,6 +503,10 @@ function LoanCalculatorScreen({
           </TouchableOpacity>
         </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
+
+      <View style={{ paddingBottom: insets.bottom, backgroundColor: THEME.screenBg }}>
+        <AdBanner placement="category" />
+      </View>
 
       <Modal
         visible={loanTypeModalVisible}
