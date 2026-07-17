@@ -39,11 +39,15 @@ export function useAds(): AdsContextValue {
   return useContext(AdsContext);
 }
 
-// DEFAULT_ADS_CONFIG stays faithful to the schema (ads_enabled / custom_link_enabled
-// false) so production is correct. In a dev build we force both on so every ad type
-// is visible on-device without a Remote Config round-trip. Phase 2 replaces this
-// initial value with fetched Remote Config values (keeping this as the fallback).
-const INITIAL_CONFIG: AdsConfig = __DEV__
+// Until Firebase Remote Config is wired (Phase 2), there is no remote source, so
+// these local values drive EVERY build — dev AND release (assembleRelease). With
+// this flag on, all ad formats show using the TEST ad units. When Phase 2 lands,
+// fetched Remote Config values replace this and DEFAULT_ADS_CONFIG (schema-faithful,
+// ads off) becomes only the fetch-failure fallback.
+// Set to false to hard-disable every ad locally.
+const ENABLE_LOCAL_ADS = true;
+
+const INITIAL_CONFIG: AdsConfig = ENABLE_LOCAL_ADS
   ? {
       ...DEFAULT_ADS_CONFIG,
       ads_enabled: true,
