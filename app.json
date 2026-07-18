@@ -23,7 +23,8 @@
       },
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
-      "package": "com.aryan_raval.EMICalculator"
+      "package": "com.aryan_raval.EMICalculator",
+      "googleServicesFile": "./google-services.json"
     },
     "androidStatusBar": {
       "barStyle": "light-content",
@@ -63,7 +64,8 @@
             "resizeMode": "contain"
           }
         }
-      ]
+      ],
+      "@react-native-firebase/app"
     ]
   }
 }

@@ -7,7 +7,7 @@ import {
   NativeAssetType,
   NativeMediaView,
 } from 'react-native-google-mobile-ads';
-import { AD_UNIT_IDS } from './adUnitIds';
+import { getAdUnitIds } from './adUnitIds';
 import { SkeletonBlock } from './AdSkeleton';
 import { useAds } from './AdsProvider';
 import { isNativeVisible, NativePlacement } from './config';
@@ -36,7 +36,7 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
     let cancelled = false;
     setFailed(false);
 
-    NativeAd.createForAdRequest(AD_UNIT_IDS.native, {
+    NativeAd.createForAdRequest(getAdUnitIds(config).native, {
       requestNonPersonalizedAdsOnly: false,
     })
       .then(ad => {
@@ -60,7 +60,7 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
       current?.destroy();
       setNativeAd(null);
     };
-  }, [visible]);
+  }, [visible, config]);
 
   if (!visible || failed) {
     return null;

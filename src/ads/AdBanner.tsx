@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
-import { AD_UNIT_IDS } from './adUnitIds';
+import { getAdUnitIds } from './adUnitIds';
 import { SkeletonBlock } from './AdSkeleton';
 import { useAds } from './AdsProvider';
 import { BannerPlacement, isBannerVisible } from './config';
@@ -31,7 +31,7 @@ function AdBanner({ placement }: AdBannerProps) {
     <View style={styles.slot}>
       {status === 'loading' ? <SkeletonBlock style={styles.skeleton} /> : null}
       <BannerAd
-        unitId={AD_UNIT_IDS.banner}
+        unitId={getAdUnitIds(config).banner}
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         onAdLoaded={() => setStatus('loaded')}
         onAdFailedToLoad={() => setStatus('failed')}

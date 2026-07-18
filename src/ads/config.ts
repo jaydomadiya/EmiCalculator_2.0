@@ -43,6 +43,15 @@ export type AdsConfig = {
 
   // API
   maintenance: boolean;
+
+  // AD UNIT IDS (Android) — real AdMob unit IDs, swappable from the Firebase
+  // console without an app release. __DEV__ builds ignore these and always
+  // use Google's TestIds instead (see adUnitIds.ts).
+  android_banner_ad_unit_id: string;
+  android_interstitial_ad_unit_id: string;
+  android_native_ad_unit_id: string;
+  android_app_open_ad_unit_id: string;
+  android_rewarded_ad_unit_id: string;
 };
 
 // These defaults match the Firebase Remote Config schema EXACTLY (ads_enabled and
@@ -66,7 +75,7 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
   interstitial_delay_second: 3, // shorter shared cooldown so the every-3rd-tap ad isn't suppressed
 
   custom_link_enabled: false,
-  custom_link: 'https://yourdomain.com',
+  custom_link: 'https://example.com',
   // custom_link_after_click: 2,
   custom_link_after_click: 3, // align with interstitial so taps 1 & 2 stay ad-free; 3rd tap shows custom if Google no-fills
   custom_link_after_back: 1,
@@ -89,6 +98,14 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
   home_popup_message: '',
 
   maintenance: false,
+
+  // Fallback to Google's public test ad unit IDs until real ones are set in
+  // the Firebase console (safe to click, no ban risk).
+  android_banner_ad_unit_id: 'ca-app-pub-3940256099942544/6300978111',
+  android_interstitial_ad_unit_id: 'ca-app-pub-3940256099942544/1033173712',
+  android_native_ad_unit_id: 'ca-app-pub-3940256099942544/2247696110',
+  android_app_open_ad_unit_id: 'ca-app-pub-3940256099942544/9257395921',
+  android_rewarded_ad_unit_id: 'ca-app-pub-3940256099942544/5224354917',
 };
 
 // The schema comes from a news/blog template (home / article / category / tools).

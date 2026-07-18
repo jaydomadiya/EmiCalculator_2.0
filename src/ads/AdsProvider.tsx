@@ -9,7 +9,14 @@ import {
 } from 'react';
 import { AppState } from 'react-native';
 import { InterstitialAd, AppOpenAd, AdEventType } from 'react-native-google-mobile-ads';
-import { AD_UNIT_IDS } from './adUnitIds';
+import { getApp } from '@react-native-firebase/app';
+import {
+  fetchAndActivate,
+  getAll,
+  getRemoteConfig,
+  RemoteConfig,
+} from '@react-native-firebase/remote-config';
+import { getAdUnitIds } from './adUnitIds';
 import { AdsConfig, DEFAULT_ADS_CONFIG } from './config';
 import CustomAdModal from './CustomAdModal';
 import SponsorAdScreen from './SponsorAdScreen';
@@ -40,29 +47,84 @@ export function useAds(): AdsContextValue {
   return useContext(AdsContext);
 }
 
-// Until Firebase Remote Config is wired (Phase 2), there is no remote source, so
-// these local values drive EVERY build — dev AND release (assembleRelease). With
-// this flag on, all ad formats show using the TEST ad units. When Phase 2 lands,
-// fetched Remote Config values replace this and DEFAULT_ADS_CONFIG (schema-faithful,
-// ads off) becomes only the fetch-failure fallback.
-// Set to false to hard-disable every ad locally.
-// Phase 2 activation steps: see ADS_PHASE2_SETUP.md (set this to false there).
-const ENABLE_LOCAL_ADS = true;
+// --- Manual test-ads config (superseded by real Firebase Remote Config below).
+// This was the local override used before Remote Config was wired up — every
+// build (dev AND release) forced these values so all ad formats always showed.
+// Left here, commented, only as a quick local-debug escape hatch: flip
+// ENABLE_LOCAL_ADS to true to bypass Firebase entirely.
+//
+// const ENABLE_LOCAL_ADS = true;
+//
+// const INITIAL_CONFIG: AdsConfig = ENABLE_LOCAL_ADS
+//   ? {
+//       ...DEFAULT_ADS_CONFIG,
+//       ads_enabled: true,
+//       custom_link_enabled: true,
+//       home_popup_enabled: true,
+//       home_popup_title: 'Welcome to EMI Studio',
+//       home_popup_message: 'Plan smarter — check out our featured pick, just for you.',
+//       app_open_enabled: true,
+//     }
+//   : DEFAULT_ADS_CONFIG;
 
-const INITIAL_CONFIG: AdsConfig = ENABLE_LOCAL_ADS
-  ? {
-      ...DEFAULT_ADS_CONFIG,
-      ads_enabled: true,
-      custom_link_enabled: true,
-      home_popup_enabled: true,
-      home_popup_title: 'Welcome to EMI Studio',
-      home_popup_message: 'Plan smarter — check out our featured pick, just for you.',
-      app_open_enabled: true,
-    }
-  : DEFAULT_ADS_CONFIG;
+// Reads every AdsConfig key back out of a fetched-and-activated RemoteConfig
+// instance. Key names below match the Firebase Remote Config console verbatim
+// (see config.ts). Falls back to DEFAULT_ADS_CONFIG per-key so a param missing
+// from the console (not yet created) never produces an undefined/NaN value.
+function readAdsConfig(remoteConfig: RemoteConfig): AdsConfig {
+  const values = getAll(remoteConfig);
+  const bool = (key: keyof AdsConfig) =>
+    values[key] ? values[key].asBoolean() : (DEFAULT_ADS_CONFIG[key] as boolean);
+  const num = (key: keyof AdsConfig) =>
+    values[key] ? values[key].asNumber() : (DEFAULT_ADS_CONFIG[key] as number);
+  const str = (key: keyof AdsConfig) =>
+    values[key]?.asString() || (DEFAULT_ADS_CONFIG[key] as string);
+
+  return {
+    ads_enabled: bool('ads_enabled'),
+    banner_enabled: bool('banner_enabled'),
+    native_enabled: bool('native_enabled'),
+    interstitial_enabled: bool('interstitial_enabled'),
+    app_open_enabled: bool('app_open_enabled'),
+    reward_enabled: bool('reward_enabled'),
+
+    interstitial_after_click: num('interstitial_after_click'),
+    interstitial_after_back: num('interstitial_after_back'),
+    interstitial_delay_second: num('interstitial_delay_second'),
+
+    custom_link_enabled: bool('custom_link_enabled'),
+    custom_link: str('custom_link'),
+    custom_link_after_click: num('custom_link_after_click'),
+    custom_link_after_back: num('custom_link_after_back'),
+
+    banner_home: bool('banner_home'),
+    banner_article: bool('banner_article'),
+    banner_category: bool('banner_category'),
+    banner_tools: bool('banner_tools'),
+
+    native_home: bool('native_home'),
+    native_article: bool('native_article'),
+    native_category: bool('native_category'),
+
+    force_update: bool('force_update'),
+    latest_version: str('latest_version'),
+
+    home_popup_enabled: bool('home_popup_enabled'),
+    home_popup_title: str('home_popup_title'),
+    home_popup_message: str('home_popup_message'),
+
+    maintenance: bool('maintenance'),
+
+    android_banner_ad_unit_id: str('android_banner_ad_unit_id'),
+    android_interstitial_ad_unit_id: str('android_interstitial_ad_unit_id'),
+    android_native_ad_unit_id: str('android_native_ad_unit_id'),
+    android_app_open_ad_unit_id: str('android_app_open_ad_unit_id'),
+    android_rewarded_ad_unit_id: str('android_rewarded_ad_unit_id'),
+  };
+}
 
 export function AdsProvider({ children }: { children: ReactNode }) {
-  const [config] = useState<AdsConfig>(INITIAL_CONFIG);
+  const [config, setConfig] = useState<AdsConfig>(DEFAULT_ADS_CONFIG);
   const [customAdVisible, setCustomAdVisible] = useState(false);
   const [homePopupVisible, setHomePopupVisible] = useState(false);
   const homePopupShownRef = useRef(false);
@@ -87,12 +149,41 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   // from our own ad — not a genuine app resume — and must NOT trigger app-open.
   const suppressAppOpenRef = useRef(false);
 
+  // Fetch + activate Firebase Remote Config once on mount. Defaults are set to
+  // DEFAULT_ADS_CONFIG first so getAll() always has every key even before the
+  // first successful network fetch (or if the device is offline on cold start).
+  const didFetchRemoteConfigRef = useRef(false);
+  useEffect(() => {
+    if (didFetchRemoteConfigRef.current) {
+      return;
+    }
+    didFetchRemoteConfigRef.current = true;
+
+    const remoteConfig = getRemoteConfig(getApp());
+    remoteConfig.settings = {
+      // TEMP: forced to 0 for Remote Config testing so every app open fetches
+      // fresh values instead of the throttled release cache. Set this back to
+      // `__DEV__ ? 0 : 3600000` before shipping — 0 in production hits the
+      // Remote Config API on every cold start, which is wasteful and can hit
+      // Firebase's fetch quota under real traffic.
+      minimumFetchIntervalMillis: 0,
+      fetchTimeoutMillis: 30000,
+    };
+    remoteConfig.defaultConfig = DEFAULT_ADS_CONFIG;
+
+    fetchAndActivate(remoteConfig)
+      .catch(() => undefined)
+      .finally(() => {
+        setConfig(readAdsConfig(remoteConfig));
+      });
+  }, []);
+
   const loadInterstitial = useCallback(() => {
     const cfg = configRef.current;
     if (!cfg.ads_enabled || !cfg.interstitial_enabled) {
       return;
     }
-    const ad = InterstitialAd.createForAdRequest(AD_UNIT_IDS.interstitial, {
+    const ad = InterstitialAd.createForAdRequest(getAdUnitIds(cfg).interstitial, {
       requestNonPersonalizedAdsOnly: false,
     });
     interstitialRef.current = ad;
@@ -118,13 +209,15 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Re-runs once Remote Config resolves (config identity changes), so the
+    // ad loads for real instead of bailing on the ads_enabled=false default.
     loadInterstitial();
     return () => {
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current);
       }
     };
-  }, [loadInterstitial]);
+  }, [loadInterstitial, config]);
 
   const showAppOpenIfReady = useCallback(() => {
     const cfg = configRef.current;
@@ -154,7 +247,7 @@ export function AdsProvider({ children }: { children: ReactNode }) {
     if (!cfg.ads_enabled || !cfg.app_open_enabled) {
       return;
     }
-    const ad = AppOpenAd.createForAdRequest(AD_UNIT_IDS.appOpen, {
+    const ad = AppOpenAd.createForAdRequest(getAdUnitIds(cfg).appOpen, {
       requestNonPersonalizedAdsOnly: false,
     });
     appOpenRef.current = ad;
@@ -183,6 +276,8 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   }, [showAppOpenIfReady]);
 
   useEffect(() => {
+    // Re-runs once Remote Config resolves, same reasoning as the interstitial
+    // effect above.
     loadAppOpen();
     // After a few seconds the cold-start window closes; a later load won't
     // auto-show (it waits for a genuine background -> foreground instead).
@@ -206,7 +301,7 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       clearTimeout(coldStartTimer);
       subscription.remove();
     };
-  }, [loadAppOpen, showAppOpenIfReady]);
+  }, [loadAppOpen, showAppOpenIfReady, config]);
 
   const showInterstitialIfReady = useCallback((now: number): boolean => {
     const ad = interstitialRef.current;

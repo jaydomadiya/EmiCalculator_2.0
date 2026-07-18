@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "695397943436",
+    "project_id": "loan-emi-calculator-2085a",
+    "storage_bucket": "loan-emi-calculator-2085a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:695397943436:android:9a214e41896d33fd1b13a9",
+        "android_client_info": {
+          "package_name": "com.aryan_raval.EMICalculator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCihjY-N_okVcsAVOkDaUHAsNUnjTLhKCk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
