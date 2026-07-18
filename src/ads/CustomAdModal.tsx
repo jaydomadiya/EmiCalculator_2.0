@@ -1,39 +1,17 @@
-import { Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
 type CustomAdModalProps = {
   visible: boolean;
-  url: string;
   onClose: () => void;
   title?: string;
   subtitle?: string;
   ctaText?: string;
-  // 'ad' = the custom_link house ad (SPONSORED badge, CTA opens the link).
-  // 'message' = the home_popup announcement (no badge, CTA just dismisses).
-  variant?: 'ad' | 'message';
 };
 
-// A full-screen modal used two ways, selected by `variant`:
-//  - 'ad': the click/back-cadence custom_link house ad, and
-//  - 'message': the home_popup announcement (title/subtitle from Remote Config).
-function CustomAdModal({
-  visible,
-  url,
-  onClose,
-  title,
-  subtitle,
-  ctaText,
-  variant = 'ad',
-}: CustomAdModalProps) {
-  const isMessage = variant === 'message';
-
-  const onCtaPress = () => {
-    if (!isMessage && url) {
-      Linking.openURL(url).catch(() => undefined);
-    }
-    onClose();
-  };
-
+// The home_popup announcement modal (title/subtitle from Remote Config).
+// CTA just dismisses — it never navigates anywhere.
+function CustomAdModal({ visible, onClose, title, subtitle, ctaText }: CustomAdModalProps) {
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
@@ -42,14 +20,8 @@ function CustomAdModal({
             <Icon name="close" size={22} color="#64748B" />
           </TouchableOpacity>
 
-          {isMessage ? null : (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>SPONSORED</Text>
-            </View>
-          )}
-
-          <View style={[styles.iconCircle, isMessage && styles.iconCircleMessage]}>
-            <Icon name={isMessage ? 'bell-ring-outline' : 'star-four-points'} size={40} color="#0E9F6E" />
+          <View style={styles.iconCircle}>
+            <Icon name="bell-ring-outline" size={40} color="#0E9F6E" />
           </View>
 
           <Text style={styles.title}>{title || 'Check this out'}</Text>
@@ -57,10 +29,8 @@ function CustomAdModal({
             {subtitle || 'A quick pick handpicked for you.'}
           </Text>
 
-          <TouchableOpacity style={styles.cta} activeOpacity={0.85} onPress={onCtaPress}>
-            <Text style={styles.ctaText}>
-              {ctaText || (isMessage ? 'Got it' : 'Learn More')}
-            </Text>
+          <TouchableOpacity style={styles.cta} activeOpacity={0.85} onPress={onClose}>
+            <Text style={styles.ctaText}>{ctaText || 'Got it'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -92,19 +62,6 @@ const styles = StyleSheet.create({
     right: 12,
     padding: 4,
   },
-  badge: {
-    backgroundColor: 'rgba(14,159,110,0.12)',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginBottom: 18,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    color: '#0E9F6E',
-  },
   iconCircle: {
     width: 78,
     height: 78,
@@ -113,8 +70,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-  },
-  iconCircleMessage: {
     marginTop: 20,
   },
   title: {

@@ -12,6 +12,7 @@ import { InterstitialAd, AppOpenAd, AdEventType } from 'react-native-google-mobi
 import { AD_UNIT_IDS } from './adUnitIds';
 import { AdsConfig, DEFAULT_ADS_CONFIG } from './config';
 import CustomAdModal from './CustomAdModal';
+import SponsorAdScreen from './SponsorAdScreen';
 
 export type InteractionKind = 'click' | 'back';
 
@@ -284,15 +285,13 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   return (
     <AdsContext.Provider value={{ config, registerInteraction, maybeShowHomePopup }}>
       {children}
-      <CustomAdModal
+      <SponsorAdScreen
         visible={customAdVisible}
         url={config.custom_link}
         onClose={() => setCustomAdVisible(false)}
       />
       <CustomAdModal
         visible={homePopupVisible}
-        variant="message"
-        url={config.custom_link}
         title={config.home_popup_title}
         subtitle={config.home_popup_message}
         onClose={() => setHomePopupVisible(false)}
