@@ -45,6 +45,7 @@ export function useAds(): AdsContextValue {
 // fetched Remote Config values replace this and DEFAULT_ADS_CONFIG (schema-faithful,
 // ads off) becomes only the fetch-failure fallback.
 // Set to false to hard-disable every ad locally.
+// Phase 2 activation steps: see ADS_PHASE2_SETUP.md (set this to false there).
 const ENABLE_LOCAL_ADS = true;
 
 const INITIAL_CONFIG: AdsConfig = ENABLE_LOCAL_ADS

@@ -8,6 +8,7 @@ import {
   NativeMediaView,
 } from 'react-native-google-mobile-ads';
 import { AD_UNIT_IDS } from './adUnitIds';
+import { SkeletonBlock } from './AdSkeleton';
 import { useAds } from './AdsProvider';
 import { isNativeVisible, NativePlacement } from './config';
 
@@ -23,6 +24,7 @@ type NativeAdCardProps = {
 function NativeAdCard({ placement }: NativeAdCardProps) {
   const { config } = useAds();
   const [nativeAd, setNativeAd] = useState<NativeAd | null>(null);
+  const [failed, setFailed] = useState(false);
 
   const visible = isNativeVisible(config, placement);
 
@@ -32,6 +34,7 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
     }
     let current: NativeAd | null = null;
     let cancelled = false;
+    setFailed(false);
 
     NativeAd.createForAdRequest(AD_UNIT_IDS.native, {
       requestNonPersonalizedAdsOnly: false,
@@ -44,7 +47,13 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
         current = ad;
         setNativeAd(ad);
       })
-      .catch(() => undefined);
+      // Load failed (e.g. no-fill): mark failed so the slot collapses instead
+      // of showing a skeleton forever.
+      .catch(() => {
+        if (!cancelled) {
+          setFailed(true);
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -53,8 +62,29 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
     };
   }, [visible]);
 
-  if (!visible || !nativeAd) {
+  if (!visible || failed) {
     return null;
+  }
+
+  // Ad still loading: show a skeleton shaped like the real card so the layout
+  // is stable and the user sees a UI-matched loading state.
+  if (!nativeAd) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.headerRow}>
+          <SkeletonBlock style={styles.skIcon} />
+          <View style={styles.headerText}>
+            <SkeletonBlock style={styles.skLineLg} />
+            <SkeletonBlock style={styles.skLineSm} />
+          </View>
+          <SkeletonBlock style={styles.skBadge} />
+        </View>
+        <SkeletonBlock style={styles.skBodyLine1} />
+        <SkeletonBlock style={styles.skBodyLine2} />
+        <SkeletonBlock style={styles.skMedia} />
+        <SkeletonBlock style={styles.skCta} />
+      </View>
+    );
   }
 
   return (
@@ -168,6 +198,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // Loading-skeleton shapes (mirror the real card layout above).
+  skIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+  },
+  skLineLg: {
+    height: 13,
+    width: '65%',
+    borderRadius: 6,
+    marginBottom: 7,
+  },
+  skLineSm: {
+    height: 10,
+    width: '40%',
+    borderRadius: 6,
+  },
+  skBadge: {
+    width: 22,
+    height: 14,
+    borderRadius: 4,
+  },
+  skBodyLine1: {
+    height: 10,
+    width: '100%',
+    borderRadius: 6,
+    marginTop: 12,
+  },
+  skBodyLine2: {
+    height: 10,
+    width: '80%',
+    borderRadius: 6,
+    marginTop: 7,
+  },
+  skMedia: {
+    width: '100%',
+    height: 140,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  skCta: {
+    height: 42,
+    width: '100%',
+    borderRadius: 10,
+    marginTop: 10,
   },
 });
 

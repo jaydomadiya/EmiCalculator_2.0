@@ -5,11 +5,11 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { BackHandler, StatusBar } from 'react-native';
+import { BackHandler, StatusBar, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import mobileAds from 'react-native-google-mobile-ads';
 import * as SplashScreen from 'expo-splash-screen';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import './src/i18n';
 import { DEFAULT_LANGUAGE_CODE } from './src/i18n/languages';
@@ -46,6 +46,7 @@ import { LoanComparisonResult } from './src/types/loanComparison';
 import { InvestmentTool } from './src/types/investment';
 import { OtherCalculatorTool } from './src/types/otherCalculator';
 import { AdsProvider, useAds } from './src/ads/AdsProvider';
+import AdBanner from './src/ads/AdBanner';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -114,9 +115,23 @@ function buildFormForLoanType(loanTypeKey: string): LoanFormState {
   };
 }
 
+// Screens that must NOT get the global bottom banner: setup/blank screens, and
+// screens that already render their own banner (home, loan calculator = category,
+// loan result = article). Every other screen gets a bottom banner ("sari screen").
+const NO_FOOTER_BANNER_SCREENS = [
+  'loading',
+  'onboarding',
+  'language',
+  'settingsLanguage',
+  'home',
+  'calculator',
+  'result',
+];
+
 function AppContent() {
   const { i18n } = useTranslation();
   const { registerInteraction } = useAds();
+  const insets = useSafeAreaInsets();
   const didBootstrap = useRef(false);
   const [screen, setScreen] = useState<Screen>('loading');
   const [loanForm, setLoanForm] = useState<LoanFormState | null>(null);
@@ -300,9 +315,10 @@ function AppContent() {
   };
 
   const isOnboardingScreen = screen === 'onboarding';
+  const showFooterBanner = !NO_FOOTER_BANNER_SCREENS.includes(screen);
 
   return (
-    <>
+    <View style={styles.appRoot}>
       <StatusBar
         barStyle={isOnboardingScreen ? 'dark-content' : 'light-content'}
         backgroundColor={isOnboardingScreen ? THEME.screenBg : THEME.headerFrom}
@@ -411,9 +427,25 @@ function AppContent() {
           onDone={() => setScreen('home')}
         />
       )}
-    </>
+      {showFooterBanner && (
+        <View style={[styles.footerBanner, { paddingBottom: insets.bottom }]}>
+          <AdBanner placement="tools" />
+        </View>
+      )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1,
+  },
+  footerBanner: {
+    backgroundColor: THEME.cardBg,
+    borderTopWidth: 1,
+    borderTopColor: THEME.border,
+  },
+});
 
 function App() {
   return (

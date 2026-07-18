@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { AD_UNIT_IDS } from './adUnitIds';
+import { SkeletonBlock } from './AdSkeleton';
 import { useAds } from './AdsProvider';
 import { BannerPlacement, isBannerVisible } from './config';
 
@@ -13,14 +15,27 @@ type AdBannerProps = {
 // nothing so the layout collapses cleanly.
 function AdBanner({ placement }: AdBannerProps) {
   const { config } = useAds();
+  // Until the banner reports LOADED we show a skeleton the same height as the
+  // banner; on FAILED we collapse the slot so no empty gap is left behind.
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'failed'>('loading');
 
   if (!isBannerVisible(config, placement)) {
     return null;
   }
 
+  if (status === 'failed') {
+    return null;
+  }
+
   return (
     <View style={styles.slot}>
-      <BannerAd unitId={AD_UNIT_IDS.banner} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+      {status === 'loading' ? <SkeletonBlock style={styles.skeleton} /> : null}
+      <BannerAd
+        unitId={AD_UNIT_IDS.banner}
+        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+        onAdLoaded={() => setStatus('loaded')}
+        onAdFailedToLoad={() => setStatus('failed')}
+      />
     </View>
   );
 }
@@ -30,6 +45,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
     marginBottom: 8,
+  },
+  skeleton: {
+    width: '100%',
+    height: 56,
+    borderRadius: 10,
   },
 });
 

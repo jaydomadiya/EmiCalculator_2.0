@@ -59,19 +59,23 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
   app_open_enabled: false,
   reward_enabled: false,
 
+  // full-screen ad on every 3rd tap (user example: 1st=loan, 2nd=emi, 3rd=ad)
   interstitial_after_click: 3,
   interstitial_after_back: 2,
-  interstitial_delay_second: 10,
+  // interstitial_delay_second: 10,
+  interstitial_delay_second: 3, // shorter shared cooldown so the every-3rd-tap ad isn't suppressed
 
   custom_link_enabled: false,
   custom_link: 'https://yourdomain.com',
-  custom_link_after_click: 2,
+  // custom_link_after_click: 2,
+  custom_link_after_click: 3, // align with interstitial so taps 1 & 2 stay ad-free; 3rd tap shows custom if Google no-fills
   custom_link_after_back: 1,
 
   banner_home: true,
   banner_article: true,
   banner_category: true,
-  banner_tools: false,
+  // banner_tools: false,
+  banner_tools: true, // bottom banner on all other screens (converter/investment/other/planner/chart/settings)
 
   native_home: true,
   native_article: true,
