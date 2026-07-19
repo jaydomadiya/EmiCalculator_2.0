@@ -12,6 +12,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AdBanner from '../ads/AdBanner';
+import { useAds } from '../ads/AdsProvider';
 import { THEME, CATEGORY_PALETTE, hexToRgba } from '../theme/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -150,9 +152,18 @@ function SlideIllustration({ slide }: { slide: Slide }) {
 
 function OnboardingScreen({ onFinish }: Props) {
   const insets = useSafeAreaInsets();
+  const { config, registerInteraction } = useAds();
   const listRef = useRef<FlatList<Slide>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const isLastSlide = activeIndex === SLIDES.length - 1;
+
+  // Remote Config can trim the (currently 4) slides down to a shorter intro —
+  // clamp so an out-of-range value never produces an empty or overflowing list.
+  const slideCount = Math.min(
+    Math.max(Math.round(config.onboarding_screen_count) || SLIDES.length, 1),
+    SLIDES.length,
+  );
+  const slides = SLIDES.slice(0, slideCount);
+  const isLastSlide = activeIndex === slides.length - 1;
 
   const handleMomentumScrollEnd = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -164,6 +175,10 @@ function OnboardingScreen({ onFinish }: Props) {
   };
 
   const handleNext = () => {
+    // Not a Home-screen tap, so this only ever competes for the interstitial
+    // (never the custom_link sponsor ad) — see registerInteraction in
+    // AdsProvider for the Home-only sponsor-ad rule.
+    registerInteraction('click');
     if (isLastSlide) {
       onFinish();
       return;
@@ -185,7 +200,7 @@ function OnboardingScreen({ onFinish }: Props) {
 
       <FlatList
         ref={listRef}
-        data={SLIDES}
+        data={slides}
         keyExtractor={item => item.key}
         horizontal
         pagingEnabled
@@ -203,7 +218,7 @@ function OnboardingScreen({ onFinish }: Props) {
 
       <View style={styles.footer}>
         <View style={styles.dotsRow}>
-          {SLIDES.map((slide, index) => (
+          {slides.map((slide, index) => (
             <View
               key={slide.key}
               style={[
@@ -226,7 +241,9 @@ function OnboardingScreen({ onFinish }: Props) {
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.adSlot, { paddingBottom: insets.bottom }]} />
+      <View style={[styles.adSlot, { paddingBottom: insets.bottom }]}>
+        <AdBanner placement="tools" />
+      </View>
     </View>
   );
 }
@@ -382,7 +399,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   adSlot: {
-    height: 60,
+    minHeight: 60,
     backgroundColor: COLORS.screenBg,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

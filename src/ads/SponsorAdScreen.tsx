@@ -64,6 +64,14 @@ function SponsorAdScreen({ visible, url, onClose }: SponsorAdScreenProps) {
             style={styles.webview}
             onLoadStart={() => setLoading(true)}
             onLoadEnd={() => setLoading(false)}
+            // onLoadEnd only fires once the page is fully network-idle, which
+            // can take a while on heavier sites — reveal as soon as the page
+            // is mostly rendered instead of waiting for every last resource.
+            onLoadProgress={({ nativeEvent }) => {
+              if (nativeEvent.progress > 0.4) {
+                setLoading(false);
+              }
+            }}
             onError={() => {
               setLoading(false);
               setFailed(true);

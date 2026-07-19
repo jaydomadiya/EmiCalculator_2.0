@@ -340,7 +340,12 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
             </LinearGradient>
           </View>
           <View style={styles.headerCopy}>
-            <Text style={styles.headerTitle} numberOfLines={1}>
+            <Text
+              style={styles.headerTitle}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
               {t('common.appTitle')}
             </Text>
           </View>
@@ -352,14 +357,20 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* One banner above the first section, then one after every section —
+            so a banner sits between every pair of section titles. */}
+        <AdBanner placement="home" />
+
         {SECTIONS.map(section => (
-          <GridSection
-            key={section.titleKey}
-            section={section}
-            t={t}
-            onSelectLoanType={onOpenLoanCalculator}
-            onOpenConverterTool={onOpenConverterTool}
-          />
+          <View key={section.titleKey}>
+            <GridSection
+              section={section}
+              t={t}
+              onSelectLoanType={onOpenLoanCalculator}
+              onOpenConverterTool={onOpenConverterTool}
+            />
+            <AdBanner placement="home" />
+          </View>
         ))}
 
         <OtherCalculatorsCard t={t} onOpenConverterTool={onOpenConverterTool} />

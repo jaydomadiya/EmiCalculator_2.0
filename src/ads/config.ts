@@ -44,6 +44,17 @@ export type AdsConfig = {
   // API
   maintenance: boolean;
 
+  // ONBOARDING
+  // How many of the (currently 4) onboarding slides to show, front-to-back.
+  // Clamped in OnboardingScreen — values outside 1..slide-count are ignored.
+  onboarding_screen_count: number;
+
+  // SPLASH AD
+  // Shows the custom_link sponsor ad once, right after the splash screen
+  // hides — independent of the click/back cadence below. Requires
+  // ads_enabled + custom_link_enabled to also be true.
+  splash_ad_enabled: boolean;
+
   // AD UNIT IDS (Android) — real AdMob unit IDs, swappable from the Firebase
   // console without an app release. __DEV__ builds ignore these and always
   // use Google's TestIds instead (see adUnitIds.ts).
@@ -98,6 +109,9 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
   home_popup_message: '',
 
   maintenance: false,
+
+  onboarding_screen_count: 4,
+  splash_ad_enabled: false,
 
   // Fallback to Google's public test ad unit IDs until real ones are set in
   // the Firebase console (safe to click, no ban risk).

@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import AdBanner from '../ads/AdBanner';
 import { LANGUAGES, LanguageOption } from '../i18n/languages';
 import { THEME, hexToRgba } from '../theme/colors';
 
@@ -68,7 +69,9 @@ function LanguageScreen({ onContinue, onBack }: Props) {
         )}
       />
 
-      <View style={[styles.adSlot, { paddingBottom: insets.bottom }]} />
+      <View style={[styles.adSlot, { paddingBottom: insets.bottom }]}>
+        <AdBanner placement="tools" />
+      </View>
     </View>
   );
 }
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.radioActive,
   },
   adSlot: {
-    height: 60,
+    minHeight: 60,
     backgroundColor: COLORS.screenBg,
     borderTopWidth: 1,
     borderTopColor: COLORS.cardBorder,

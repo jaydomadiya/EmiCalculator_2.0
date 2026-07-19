@@ -26,12 +26,20 @@ export type InteractionKind = 'click' | 'back';
 // Minimum gap between two app-open ads (AdMob policy: don't show on every resume).
 const APP_OPEN_MIN_INTERVAL_MS = 60000;
 
+export type RegisterInteractionOptions = {
+  // Only Home-screen-originated clicks are eligible to show the custom_link
+  // sponsor ad — everywhere else only the Google interstitial competes. This
+  // keeps the two ad types from fighting over the same click (see the
+  // interstitial-vs-custom precedence note in registerInteraction below).
+  customAdEligible?: boolean;
+};
+
 type AdsContextValue = {
   config: AdsConfig;
   // Call on every navigation click / hardware back. The provider decides,
   // based on the Remote Config counters + cooldown, whether to surface a
   // full-screen Google interstitial or the custom-link house ad.
-  registerInteraction: (kind: InteractionKind) => void;
+  registerInteraction: (kind: InteractionKind, opts?: RegisterInteractionOptions) => void;
   // Call when the Home screen mounts. Shows the home_popup message once per
   // session if home_popup_enabled is set in Remote Config.
   maybeShowHomePopup: () => void;
@@ -115,6 +123,9 @@ function readAdsConfig(remoteConfig: RemoteConfig): AdsConfig {
 
     maintenance: bool('maintenance'),
 
+    onboarding_screen_count: num('onboarding_screen_count'),
+    splash_ad_enabled: bool('splash_ad_enabled'),
+
     android_banner_ad_unit_id: str('android_banner_ad_unit_id'),
     android_interstitial_ad_unit_id: str('android_interstitial_ad_unit_id'),
     android_native_ad_unit_id: str('android_native_ad_unit_id'),
@@ -135,7 +146,12 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   const interstitialRef = useRef<InterstitialAd | null>(null);
   const interstitialLoadedRef = useRef(false);
   const lastFullScreenAtRef = useRef(0);
-  const clickCountRef = useRef(0);
+  // Interstitial and custom-link ads now track SEPARATE click counters so
+  // they never compete for the same interaction: interstitialClickCountRef
+  // only advances on non-Home clicks, customClickCountRef only advances on
+  // Home-screen clicks (customAdEligible).
+  const interstitialClickCountRef = useRef(0);
+  const customClickCountRef = useRef(0);
   const backCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -177,6 +193,22 @@ export function AdsProvider({ children }: { children: ReactNode }) {
         setConfig(readAdsConfig(remoteConfig));
       });
   }, []);
+
+  // Shows the custom_link sponsor ad once, right after Remote Config resolves
+  // post-splash — independent of the click/back cadence in registerInteraction.
+  // Runs as its own effect (rather than being called from App.tsx) so it never
+  // races the async Remote Config fetch: it fires the instant `config` updates
+  // with real values, whenever that happens to land.
+  const splashAdShownRef = useRef(false);
+  useEffect(() => {
+    if (splashAdShownRef.current) {
+      return;
+    }
+    if (config.ads_enabled && config.custom_link_enabled && config.splash_ad_enabled) {
+      splashAdShownRef.current = true;
+      setCustomAdVisible(true);
+    }
+  }, [config]);
 
   const loadInterstitial = useCallback(() => {
     const cfg = configRef.current;
@@ -316,26 +348,39 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const registerInteraction = useCallback(
-    (kind: InteractionKind) => {
+    (kind: InteractionKind, opts?: RegisterInteractionOptions) => {
       const cfg = configRef.current;
       if (!cfg.ads_enabled) {
         return;
       }
+      const customAdEligible = opts?.customAdEligible ?? false;
 
       let interstitialDue = false;
       let customDue = false;
 
       if (kind === 'click') {
-        clickCountRef.current += 1;
-        const c = clickCountRef.current;
+        // Interstitial counts EVERY click app-wide (Home included) — it's the
+        // default ad. The sponsor ad has its own counter that only advances
+        // on Home clicks; when both happen to be due on the same Home click,
+        // the sponsor ad takes that one click instead of the interstitial
+        // (see precedence below) — otherwise, with interstitial_after_click=1,
+        // the interstitial would win literally every time and the sponsor ad
+        // would never get a turn.
+        interstitialClickCountRef.current += 1;
+        const ic = interstitialClickCountRef.current;
         interstitialDue =
           cfg.interstitial_enabled &&
           cfg.interstitial_after_click > 0 &&
-          c % cfg.interstitial_after_click === 0;
-        customDue =
-          cfg.custom_link_enabled &&
-          cfg.custom_link_after_click > 0 &&
-          c % cfg.custom_link_after_click === 0;
+          ic % cfg.interstitial_after_click === 0;
+
+        if (customAdEligible) {
+          customClickCountRef.current += 1;
+          const cc = customClickCountRef.current;
+          customDue =
+            cfg.custom_link_enabled &&
+            cfg.custom_link_after_click > 0 &&
+            cc % cfg.custom_link_after_click === 0;
+        }
       } else {
         backCountRef.current += 1;
         const b = backCountRef.current;
@@ -344,6 +389,7 @@ export function AdsProvider({ children }: { children: ReactNode }) {
           cfg.interstitial_after_back > 0 &&
           b % cfg.interstitial_after_back === 0;
         customDue =
+          customAdEligible &&
           cfg.custom_link_enabled &&
           cfg.custom_link_after_back > 0 &&
           b % cfg.custom_link_after_back === 0;
@@ -356,14 +402,16 @@ export function AdsProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Precedence: a ready Google interstitial wins over the custom link when
-      // both are due on the same interaction.
-      if (interstitialDue && showInterstitialIfReady(now)) {
-        return;
-      }
+      // Precedence: the sponsor ad wins when both are due on the same click.
+      // Interstitial is the "default" ad on every other click; this is what
+      // actually lets the sponsor ad surface on Home at all.
       if (customDue) {
         lastFullScreenAtRef.current = now;
         setCustomAdVisible(true);
+        return;
+      }
+      if (interstitialDue) {
+        showInterstitialIfReady(now);
       }
     },
     [showInterstitialIfReady],

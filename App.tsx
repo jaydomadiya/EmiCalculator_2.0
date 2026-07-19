@@ -51,6 +51,7 @@ import AdBanner from './src/ads/AdBanner';
 SplashScreen.preventAutoHideAsync();
 
 const LANGUAGE_STORAGE_KEY = 'emi_calculator_selected_language';
+const ONBOARDING_SEEN_KEY = 'emi_calculator_onboarding_seen';
 
 type Screen =
   | 'loading'
@@ -154,13 +155,21 @@ function AppContent() {
         .catch(() => undefined);
 
       const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+      const onboardingSeen = await AsyncStorage.getItem(ONBOARDING_SEEN_KEY);
 
       if (savedLanguage) {
         await i18n.changeLanguage(savedLanguage);
       } else {
         await i18n.changeLanguage(DEFAULT_LANGUAGE_CODE);
       }
-      setScreen('onboarding');
+
+      // Onboarding is a one-time, first-launch-only flow. Once seen, skip
+      // straight to language selection (if never chosen) or home.
+      if (onboardingSeen) {
+        setScreen(savedLanguage ? 'home' : 'language');
+      } else {
+        setScreen('onboarding');
+      }
 
       await SplashScreen.hideAsync();
     };
@@ -210,6 +219,14 @@ function AppContent() {
     return () => subscription.remove();
   }, [screen, registerInteraction]);
 
+  // Shared by every on-screen back-arrow button, so a tap on the header's `←`
+  // registers an ad interaction exactly like the hardware back button does
+  // (registerInteraction('back') in the hardwareBackPress handler above).
+  const handleBack = (target: Screen) => {
+    registerInteraction('back');
+    setScreen(target);
+  };
+
   const handleLanguageSelected = async (languageCode: string) => {
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
     await i18n.changeLanguage(languageCode);
@@ -217,13 +234,15 @@ function AppContent() {
   };
 
   const handleOpenLoanCalculator = (loanTypeKey: string) => {
-    registerInteraction('click');
+    // Tapped from the Home screen — eligible for the custom_link sponsor ad.
+    registerInteraction('click', { customAdEligible: true });
     setLoanForm(buildFormForLoanType(loanTypeKey));
     setScreen('calculator');
   };
 
   const handleOpenConverterTool = (tool: ConverterTool) => {
-    registerInteraction('click');
+    // Tapped from the Home screen — eligible for the custom_link sponsor ad.
+    registerInteraction('click', { customAdEligible: true });
     if (tool === 'loanComparison') {
       setLoanComparisonResult(null);
     }
@@ -324,14 +343,19 @@ function AppContent() {
         backgroundColor={isOnboardingScreen ? THEME.screenBg : THEME.headerFrom}
       />
       {screen === 'onboarding' && (
-        <OnboardingScreen onFinish={() => setScreen('language')} />
+        <OnboardingScreen
+          onFinish={async () => {
+            await AsyncStorage.setItem(ONBOARDING_SEEN_KEY, 'true');
+            setScreen('language');
+          }}
+        />
       )}
       {screen === 'language' && (
         <LanguageScreen onContinue={handleLanguageSelected} />
       )}
       {screen === 'settingsLanguage' && (
         <LanguageScreen
-          onBack={() => setScreen('settings')}
+          onBack={() => handleBack('settings')}
           onContinue={async languageCode => {
             await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
             await i18n.changeLanguage(languageCode);
@@ -346,18 +370,18 @@ function AppContent() {
         />
       )}
       {screen === 'currencyConverter' && (
-        <CurrencyConverterScreen onBack={() => setScreen('home')} />
+        <CurrencyConverterScreen onBack={() => handleBack('home')} />
       )}
       {screen === 'cryptoConverter' && (
-        <CryptoConverterScreen onBack={() => setScreen('home')} />
+        <CryptoConverterScreen onBack={() => handleBack('home')} />
       )}
-      {screen === 'customRate' && <CustomRateScreen onBack={() => setScreen('home')} />}
+      {screen === 'customRate' && <CustomRateScreen onBack={() => handleBack('home')} />}
       {screen === 'currencyList' && (
-        <CurrencyListScreen onBack={() => setScreen('home')} />
+        <CurrencyListScreen onBack={() => handleBack('home')} />
       )}
       {screen === 'chart' && (
         <ChartScreen
-          onBackHome={() => setScreen('home')}
+          onBackHome={() => handleBack('home')}
           onOpenConvert={() => setScreen('currencyConverter')}
           onOpenCalculator={() => handleOpenLoanCalculator('personalLoan')}
           onOpenSettings={() => setScreen('settings')}
@@ -365,7 +389,7 @@ function AppContent() {
       )}
       {screen === 'settings' && (
         <SettingsScreen
-          onBackHome={() => setScreen('home')}
+          onBackHome={() => handleBack('home')}
           onOpenLanguage={() => setScreen('settingsLanguage')}
           onOpenConvert={() => setScreen('currencyConverter')}
           onOpenChart={() => setScreen('chart')}
@@ -374,7 +398,7 @@ function AppContent() {
       )}
       {screen === 'loanComparison' && (
         <LoanComparisonScreen
-          onBack={() => setScreen('home')}
+          onBack={() => handleBack('home')}
           onCalculate={result => {
             setLoanComparisonResult(result);
             setScreen('loanComparisonResult');
@@ -384,29 +408,29 @@ function AppContent() {
       {screen === 'loanComparisonResult' && loanComparisonResult && (
         <LoanComparisonResultScreen
           result={loanComparisonResult}
-          onBack={() => setScreen('loanComparison')}
+          onBack={() => handleBack('loanComparison')}
           onDone={() => setScreen('home')}
         />
       )}
       {screen === 'loanAnalysis' && (
-        <LoanAnalysisScreen onBack={() => setScreen('home')} />
+        <LoanAnalysisScreen onBack={() => handleBack('home')} />
       )}
       {screen === 'homeAffordability' && (
-        <HomeAffordabilityScreen onBack={() => setScreen('home')} />
+        <HomeAffordabilityScreen onBack={() => handleBack('home')} />
       )}
       {screen === 'savingsGoal' && (
-        <SavingsGoalScreen onBack={() => setScreen('home')} />
+        <SavingsGoalScreen onBack={() => handleBack('home')} />
       )}
       {screen === 'investmentCalculator' && (
         <InvestmentCalculatorScreen
           tool={investmentTool}
-          onBack={() => setScreen('home')}
+          onBack={() => handleBack('home')}
         />
       )}
       {screen === 'otherCalculator' && (
         <OtherCalculatorScreen
           tool={otherCalculatorTool}
-          onBack={() => setScreen('home')}
+          onBack={() => handleBack('home')}
         />
       )}
       {screen === 'calculator' && loanForm && (
@@ -414,7 +438,7 @@ function AppContent() {
           form={loanForm}
           onChangeForm={handleChangeLoanForm}
           onSelectLoanType={handleSelectLoanType}
-          onBack={() => setScreen('home')}
+          onBack={() => handleBack('home')}
           onReset={handleResetLoanForm}
           onNext={handleCalculate}
         />
@@ -423,7 +447,7 @@ function AppContent() {
         <LoanResultScreen
           form={loanForm}
           result={calculationResult}
-          onBack={() => setScreen('calculator')}
+          onBack={() => handleBack('calculator')}
           onDone={() => setScreen('home')}
         />
       )}

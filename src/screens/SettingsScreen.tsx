@@ -12,12 +12,17 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
+import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { THEME, hexToRgba } from '../theme/colors';
 
 const PACKAGE_NAME = 'com.aryan_raval.EMICalculator';
 const STORE_URL = `https://play.google.com/store/apps/details?id=${PACKAGE_NAME}`;
+// Hosted on Netlify — this is the permanent site alias, not a deploy-specific
+// preview URL, so future edits (redeployed via drag-and-drop) show up here
+// automatically without an app update.
+const PRIVACY_POLICY_URL = 'https://polite-mousse-747690.netlify.app/';
 
 type Props = {
   onBackHome: () => void;
@@ -196,22 +201,16 @@ function PolicyModal({ visible, onClose }: { visible: boolean; onClose: () => vo
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={styles.policySheet}>
+        <View style={[styles.policySheet, styles.policySheetWebview]}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Policy</Text>
+            <Text style={styles.sheetTitle}>Privacy Policy</Text>
             <TouchableOpacity activeOpacity={0.75} onPress={onClose}>
               <Icon name="close" size={24} color={THEME.subtext} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.policyText}>
-            EMI Studio provides financial calculations for education and planning. Results are
-            estimates and should not be treated as financial advice. Live exchange rates may vary by
-            provider and market timing.
-          </Text>
-          <Text style={styles.policyText}>
-            The app does not ask for bank passwords, card numbers, or sensitive financial account
-            credentials. Feedback and rating actions open user-controlled system experiences.
-          </Text>
+          {visible && (
+            <WebView source={{ uri: PRIVACY_POLICY_URL }} style={styles.policyWebview} />
+          )}
         </View>
       </View>
     </Modal>
@@ -230,8 +229,8 @@ function SettingsScreen({
 
   const shareApp = async () => {
     await Share.share({
-      title: 'EMI Studio',
-      message: `Try EMI Studio for loan, investment, and currency tools: ${STORE_URL}`,
+      title: 'Loan Smart: Loan EMI Calculator',
+      message: `Try Loan Smart: Loan EMI Calculator for loan, investment, and currency tools: ${STORE_URL}`,
     });
   };
 
@@ -255,7 +254,7 @@ function SettingsScreen({
             <Icon name="bank-check" size={30} color={THEME.primary} />
           </View>
           <View style={styles.summaryCopy}>
-            <Text style={styles.summaryTitle}>EMI Studio</Text>
+            <Text style={styles.summaryTitle}>Loan Smart: Loan EMI Calculator</Text>
             <Text style={styles.summarySubtitle}>Loan, investment, and live currency tools in one clean place.</Text>
           </View>
         </View>
@@ -265,7 +264,7 @@ function SettingsScreen({
           <SettingRow icon="star-outline" label="Rate app" onPress={() => setModal('rate')} />
           <SettingRow icon="message-text-outline" label="Feedback" onPress={() => setModal('feedback')} />
           <SettingRow icon="share-variant-outline" label="Share" onPress={shareApp} />
-          <SettingRow icon="file-document-outline" label="Policy" onPress={() => setModal('policy')} />
+          <SettingRow icon="file-document-outline" label="Privacy Policy" onPress={() => setModal('policy')} />
         </View>
 
         <View style={styles.infoStrip}>
@@ -477,7 +476,8 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#FFFFFF',
   },
-  policyText: { marginTop: 16, fontSize: 14, lineHeight: 21, fontWeight: '600', color: THEME.subtext },
+  policySheetWebview: { height: '82%' },
+  policyWebview: { flex: 1, marginTop: 8 },
 });
 
 export default SettingsScreen;
