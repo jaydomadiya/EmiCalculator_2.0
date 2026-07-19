@@ -52,6 +52,7 @@ SplashScreen.preventAutoHideAsync();
 
 const LANGUAGE_STORAGE_KEY = 'emi_calculator_selected_language';
 const ONBOARDING_SEEN_KEY = 'emi_calculator_onboarding_seen';
+const BRANDED_SPLASH_MIN_DURATION_MS = 1200;
 
 type Screen =
   | 'loading'
@@ -149,6 +150,7 @@ function AppContent() {
         return;
       }
       didBootstrap.current = true;
+      const startedAt = Date.now();
 
       mobileAds()
         .initialize()
@@ -165,12 +167,26 @@ function AppContent() {
 
       // Onboarding is a one-time, first-launch-only flow. Once seen, skip
       // straight to language selection (if never chosen) or home.
-      if (onboardingSeen) {
-        setScreen(savedLanguage ? 'home' : 'language');
-      } else {
-        setScreen('onboarding');
+      const nextScreen: Screen = onboardingSeen
+        ? savedLanguage
+          ? 'home'
+          : 'language'
+        : 'onboarding';
+      const remainingSplashTime =
+        BRANDED_SPLASH_MIN_DURATION_MS - (Date.now() - startedAt);
+
+      if (remainingSplashTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, remainingSplashTime));
       }
 
+      setScreen(nextScreen);
+
+      // Let React actually paint the next screen before hiding the native
+      // splash, so there's no blank flash underneath it — the native splash
+      // is the ONLY splash the user sees; it stays up for the whole bootstrap
+      // + minimum branding duration above, then hands off directly to the
+      // real first screen.
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       await SplashScreen.hideAsync();
     };
 
