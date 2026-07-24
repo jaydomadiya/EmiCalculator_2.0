@@ -45,7 +45,7 @@ export type AdsConfig = {
   maintenance: boolean;
 
   // ONBOARDING
-  // How many of the (currently 4) onboarding slides to show, front-to-back.
+  // How many of the 9 onboarding slides to show, front-to-back.
   // Clamped in OnboardingScreen — values outside 1..slide-count are ignored.
   onboarding_screen_count: number;
 
@@ -110,7 +110,7 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
 
   maintenance: false,
 
-  onboarding_screen_count: 4,
+  onboarding_screen_count: 9,
   splash_ad_enabled: false,
 
   // Fallback to Google's public test ad unit IDs until real ones are set in

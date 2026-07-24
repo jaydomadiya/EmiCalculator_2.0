@@ -1,12 +1,13 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
+  ActivityIndicator,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,8 +16,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AdBanner from '../ads/AdBanner';
 import { useAds } from '../ads/AdsProvider';
 import { THEME, CATEGORY_PALETTE, hexToRgba } from '../theme/colors';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   screenBg: THEME.screenBg,
@@ -102,10 +101,75 @@ const SLIDES: Slide[] = [
     description:
       'Track exchange rates with clear, detailed charts over days, weeks, or even years. Stay informed and make smarter financial decisions.',
   },
+  {
+    key: 'compare-loans',
+    mainIcon: 'scale-balance',
+    mainColor: CATEGORY_PALETTE.violet,
+    satellites: [
+      { icon: 'bank-outline', color: COLORS.primary, top: 14, left: 12 },
+      { icon: 'percent-outline', color: CATEGORY_PALETTE.rose, top: 16, left: 122 },
+      { icon: 'cash-check', color: COLORS.gold, top: 112, left: 68 },
+    ],
+    title: 'Compare Before You Borrow',
+    description:
+      'Place loan offers side by side and compare EMI, interest, and total repayment. Choose the option that fits your budget with clarity.',
+  },
+  {
+    key: 'loan-analysis',
+    mainIcon: 'chart-line-variant',
+    mainColor: CATEGORY_PALETTE.teal,
+    satellites: [
+      { icon: 'calendar-clock-outline', color: CATEGORY_PALETTE.indigo, top: 12, left: 8 },
+      { icon: 'file-table-outline', color: COLORS.primary, top: 16, left: 124 },
+      { icon: 'finance', color: CATEGORY_PALETTE.amber, top: 112, left: 68 },
+    ],
+    title: 'See the Full Loan Picture',
+    description:
+      'Explore payment schedules and detailed loan analysis. Understand how principal and interest change across the life of your loan.',
+  },
+  {
+    key: 'savings-goals',
+    mainIcon: 'piggy-bank-outline',
+    mainColor: CATEGORY_PALETTE.rose,
+    satellites: [
+      { icon: 'target', color: CATEGORY_PALETTE.rose, top: 10, left: 10 },
+      { icon: 'calendar-month-outline', color: CATEGORY_PALETTE.indigo, top: 16, left: 124 },
+      { icon: 'cash-multiple', color: COLORS.gold, top: 112, left: 68 },
+    ],
+    title: 'Turn Goals Into Plans',
+    description:
+      'Set a savings target and discover the monthly amount or time you need. Keep every financial milestone realistic and measurable.',
+  },
+  {
+    key: 'investments',
+    mainIcon: 'chart-donut',
+    mainColor: CATEGORY_PALETTE.amber,
+    satellites: [
+      { icon: 'trending-up', color: COLORS.primary, top: 12, left: 8 },
+      { icon: 'bank-outline', color: CATEGORY_PALETTE.indigo, top: 14, left: 124 },
+      { icon: 'percent-outline', color: CATEGORY_PALETTE.rose, top: 112, left: 68 },
+    ],
+    title: 'Grow Investments Smarter',
+    description:
+      'Estimate returns for deposits, recurring plans, and SIPs. Visualize what consistent investing can build over time.',
+  },
+  {
+    key: 'home-affordability',
+    mainIcon: 'home-search-outline',
+    mainColor: CATEGORY_PALETTE.indigo,
+    satellites: [
+      { icon: 'hand-coin-outline', color: COLORS.primary, top: 12, left: 8 },
+      { icon: 'shield-check-outline', color: CATEGORY_PALETTE.teal, top: 16, left: 124 },
+      { icon: 'calculator-variant', color: COLORS.gold, top: 112, left: 68 },
+    ],
+    title: 'Plan a Home You Can Afford',
+    description:
+      'Balance income, expenses, down payment, and interest to estimate a comfortable home budget before you start searching.',
+  },
 ];
 
 type Props = {
-  onFinish: () => void;
+  onFinish: () => void | Promise<void>;
 };
 
 function SlideIllustration({ slide }: { slide: Slide }) {
@@ -152,11 +216,13 @@ function SlideIllustration({ slide }: { slide: Slide }) {
 
 function OnboardingScreen({ onFinish }: Props) {
   const insets = useSafeAreaInsets();
-  const { config, registerInteraction } = useAds();
+  const { width: screenWidth } = useWindowDimensions();
+  const { config, showOnboardingInterstitial } = useAds();
   const listRef = useRef<FlatList<Slide>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
-  // Remote Config can trim the (currently 4) slides down to a shorter intro —
+  // Remote Config can trim the 9 slides down to a shorter intro —
   // clamp so an out-of-range value never produces an empty or overflowing list.
   const slideCount = Math.min(
     Math.max(Math.round(config.onboarding_screen_count) || SLIDES.length, 1),
@@ -165,25 +231,55 @@ function OnboardingScreen({ onFinish }: Props) {
   const slides = SLIDES.slice(0, slideCount);
   const isLastSlide = activeIndex === slides.length - 1;
 
+  useEffect(() => {
+    if (activeIndex < slides.length) {
+      return;
+    }
+
+    const lastAvailableIndex = slides.length - 1;
+    setActiveIndex(lastAvailableIndex);
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToIndex({
+        index: lastAvailableIndex,
+        animated: false,
+      });
+    });
+  }, [activeIndex, slides.length]);
+
   const handleMomentumScrollEnd = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
   ) => {
     const index = Math.round(
-      event.nativeEvent.contentOffset.x / SCREEN_WIDTH,
+      event.nativeEvent.contentOffset.x / screenWidth,
     );
     setActiveIndex(index);
   };
 
-  const handleNext = () => {
-    // Not a Home-screen tap, so this only ever competes for the interstitial
-    // (never the custom_link sponsor ad) — see registerInteraction in
-    // AdsProvider for the Home-only sponsor-ad rule.
-    registerInteraction('click');
-    if (isLastSlide) {
-      onFinish();
+  const handleNext = async () => {
+    if (isAdvancing) {
       return;
     }
-    listRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
+
+    setIsAdvancing(true);
+    const shouldFinish = isLastSlide;
+    const nextIndex = activeIndex + 1;
+
+    try {
+      // Firebase's global ads/interstitial switches still decide whether this
+      // shows. Navigation waits for dismissal, so an ad never interrupts the
+      // next slide after it has already appeared.
+      await showOnboardingInterstitial();
+
+      if (shouldFinish) {
+        await onFinish();
+        return;
+      }
+
+      setActiveIndex(nextIndex);
+      listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    } finally {
+      setIsAdvancing(false);
+    }
   };
 
   return (
@@ -204,11 +300,17 @@ function OnboardingScreen({ onFinish }: Props) {
         keyExtractor={item => item.key}
         horizontal
         pagingEnabled
+        scrollEnabled={!isAdvancing}
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleMomentumScrollEnd}
+        getItemLayout={(_, index) => ({
+          length: screenWidth,
+          offset: screenWidth * index,
+          index,
+        })}
         style={styles.list}
         renderItem={({ item }) => (
-          <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
+          <View style={[styles.slide, { width: screenWidth }]}>
             <SlideIllustration slide={item} />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.description}>{item.description}</Text>
@@ -228,15 +330,25 @@ function OnboardingScreen({ onFinish }: Props) {
             />
           ))}
         </View>
-        <TouchableOpacity activeOpacity={0.85} onPress={handleNext}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          disabled={isAdvancing}
+          onPress={handleNext}
+        >
           <LinearGradient
             colors={[COLORS.primaryDark, COLORS.primary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.nextButton}
+            style={[styles.nextButton, isAdvancing && styles.nextButtonDisabled]}
           >
-            <Text style={styles.nextText}>{isLastSlide ? 'Start' : 'Next'}</Text>
-            <Icon name="arrow-right" size={18} color="#FFFFFF" />
+            {isAdvancing ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.nextText}>{isLastSlide ? 'Start' : 'Next'}</Text>
+                <Icon name="arrow-right" size={18} color="#FFFFFF" />
+              </>
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -397,6 +509,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  nextButtonDisabled: {
+    opacity: 0.72,
   },
   adSlot: {
     minHeight: 60,
