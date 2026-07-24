@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AdBanner from '../ads/AdBanner';
+import NativeAdCard from '../ads/NativeAdCard';
 import { useAds } from '../ads/AdsProvider';
 import { THEME, CATEGORY_PALETTE, hexToRgba } from '../theme/colors';
 
@@ -354,7 +354,7 @@ function OnboardingScreen({ onFinish }: Props) {
       </View>
 
       <View style={[styles.adSlot, { paddingBottom: insets.bottom }]}>
-        <AdBanner placement="tools" />
+        <NativeAdCard placement="tools" format="compact" />
       </View>
     </View>
   );

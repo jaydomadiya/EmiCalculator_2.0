@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import AdBanner from '../ads/AdBanner';
 import NativeAdCard from '../ads/NativeAdCard';
 import { useAds } from '../ads/AdsProvider';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
@@ -357,9 +356,9 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* One banner above the first section, then one after every section —
-            so a banner sits between every pair of section titles. */}
-        <AdBanner placement="home" />
+        {/* Keep the previous ad cadence, but render compact native ads in every
+            slot that previously contained a banner. */}
+        <NativeAdCard placement="home" format="compact" />
 
         {SECTIONS.map(section => (
           <View key={section.titleKey}>
@@ -369,7 +368,7 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
               onSelectLoanType={onOpenLoanCalculator}
               onOpenConverterTool={onOpenConverterTool}
             />
-            <AdBanner placement="home" />
+            <NativeAdCard placement="home" format="compact" />
           </View>
         ))}
 
@@ -377,7 +376,7 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
 
         <NativeAdCard placement="home" />
 
-        <AdBanner placement="home" />
+        <NativeAdCard placement="home" format="compact" />
       </ScrollView>
 
       <BottomNav

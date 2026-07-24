@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import AdBanner from '../ads/AdBanner';
+import NativeAdCard from '../ads/NativeAdCard';
 import { LANGUAGES, LanguageOption } from '../i18n/languages';
 import { THEME, hexToRgba } from '../theme/colors';
 
@@ -70,7 +70,7 @@ function LanguageScreen({ onContinue, onBack }: Props) {
       />
 
       <View style={[styles.adSlot, { paddingBottom: insets.bottom }]}>
-        <AdBanner placement="tools" />
+        <NativeAdCard placement="tools" format="compact" />
       </View>
     </View>
   );

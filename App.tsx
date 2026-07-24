@@ -46,7 +46,7 @@ import { LoanComparisonResult } from './src/types/loanComparison';
 import { InvestmentTool } from './src/types/investment';
 import { OtherCalculatorTool } from './src/types/otherCalculator';
 import { AdsProvider, useAds } from './src/ads/AdsProvider';
-import AdBanner from './src/ads/AdBanner';
+import NativeAdCard from './src/ads/NativeAdCard';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -117,10 +117,9 @@ function buildFormForLoanType(loanTypeKey: string): LoanFormState {
   };
 }
 
-// Screens that must NOT get the global bottom banner: setup/blank screens, and
-// screens that already render their own banner (home, loan calculator = category,
-// loan result = article). Every other screen gets a bottom banner ("sari screen").
-const NO_FOOTER_BANNER_SCREENS = [
+// Screens that already own their native-ad slot. Every other screen receives
+// the shared compact native ad at the bottom.
+const NO_FOOTER_NATIVE_AD_SCREENS = [
   'loading',
   'onboarding',
   'language',
@@ -350,7 +349,7 @@ function AppContent() {
   };
 
   const isOnboardingScreen = screen === 'onboarding';
-  const showFooterBanner = !NO_FOOTER_BANNER_SCREENS.includes(screen);
+  const showFooterNativeAd = !NO_FOOTER_NATIVE_AD_SCREENS.includes(screen);
 
   return (
     <View style={styles.appRoot}>
@@ -467,9 +466,9 @@ function AppContent() {
           onDone={() => setScreen('home')}
         />
       )}
-      {showFooterBanner && (
-        <View style={[styles.footerBanner, { paddingBottom: insets.bottom }]}>
-          <AdBanner placement="tools" />
+      {showFooterNativeAd && (
+        <View style={[styles.footerNativeAd, { paddingBottom: insets.bottom }]}>
+          <NativeAdCard placement="tools" format="compact" />
         </View>
       )}
     </View>
@@ -480,7 +479,7 @@ const styles = StyleSheet.create({
   appRoot: {
     flex: 1,
   },
-  footerBanner: {
+  footerNativeAd: {
     backgroundColor: THEME.cardBg,
     borderTopWidth: 1,
     borderTopColor: THEME.border,

@@ -25,7 +25,7 @@ import {
 } from '../types/loan';
 import { formatDate } from '../utils/emi';
 import { THEME, hexToRgba } from '../theme/colors';
-import AdBanner from '../ads/AdBanner';
+import NativeAdCard from '../ads/NativeAdCard';
 
 const COLORS = {
   headerFrom: THEME.headerFrom,
@@ -505,7 +505,7 @@ function LoanCalculatorScreen({
       </KeyboardAvoidingView>
 
       <View style={{ paddingBottom: insets.bottom, backgroundColor: THEME.screenBg }}>
-        <AdBanner placement="category" />
+        <NativeAdCard placement="category" format="compact" />
       </View>
 
       <Modal

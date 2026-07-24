@@ -121,6 +121,7 @@ function readAdsConfig(remoteConfig: RemoteConfig): AdsConfig {
     native_home: bool('native_home'),
     native_article: bool('native_article'),
     native_category: bool('native_category'),
+    native_tools: bool('native_tools'),
 
     force_update: bool('force_update'),
     latest_version: str('latest_version'),

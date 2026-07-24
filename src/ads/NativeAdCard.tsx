@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import {
   NativeAd,
+  NativeAdChoicesPlacement,
   NativeAdView,
   NativeAsset,
   NativeAssetType,
+  NativeMediaAspectRatio,
   NativeMediaView,
 } from 'react-native-google-mobile-ads';
 import { getAdUnitIds } from './adUnitIds';
@@ -14,19 +16,22 @@ import { isNativeVisible, NativePlacement } from './config';
 
 type NativeAdCardProps = {
   placement: NativePlacement;
+  format?: 'compact' | 'medium';
 };
 
-// A Google native advanced ad rendered as an in-content card, styled to match
-// the rest of the app (not the reference app's spammy density). Native ads are
-// loaded asynchronously and MUST be destroyed on unmount. The "Ad" badge is
-// required by AdMob policy, and clickable pieces are wrapped in <NativeAsset>
-// so taps are attributed. Explicit dimensions avoid the Fabric 0-height issue.
-function NativeAdCard({ placement }: NativeAdCardProps) {
+// Google native advanced ads styled to match the app. The compact layout
+// replaces the old banner slots without consuming a large part of fixed-footer
+// screens; the medium layout remains available for in-content placements.
+// Native ads MUST be destroyed on unmount. The "Ad" badge is required by AdMob
+// policy, and clickable pieces are wrapped in <NativeAsset> so taps are
+// attributed. Explicit dimensions avoid the Fabric 0-height issue.
+function NativeAdCard({ placement, format = 'medium' }: NativeAdCardProps) {
   const { config } = useAds();
   const [nativeAd, setNativeAd] = useState<NativeAd | null>(null);
   const [failed, setFailed] = useState(false);
 
   const visible = isNativeVisible(config, placement);
+  const unitId = getAdUnitIds(config).native;
 
   useEffect(() => {
     if (!visible) {
@@ -34,10 +39,16 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
     }
     let current: NativeAd | null = null;
     let cancelled = false;
+    setNativeAd(null);
     setFailed(false);
 
-    NativeAd.createForAdRequest(getAdUnitIds(config).native, {
+    NativeAd.createForAdRequest(unitId, {
       requestNonPersonalizedAdsOnly: false,
+      aspectRatio:
+        format === 'medium' ? NativeMediaAspectRatio.LANDSCAPE : NativeMediaAspectRatio.ANY,
+      // The SDK adds AdChoices automatically. Keeping it top-right and
+      // reserving that corner in both layouts prevents asset overlap.
+      adChoicesPlacement: NativeAdChoicesPlacement.TOP_RIGHT,
     })
       .then(ad => {
         if (cancelled) {
@@ -60,7 +71,7 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
       current?.destroy();
       setNativeAd(null);
     };
-  }, [visible, config]);
+  }, [format, unitId, visible]);
 
   if (!visible || failed) {
     return null;
@@ -69,8 +80,27 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
   // Ad still loading: show a skeleton shaped like the real card so the layout
   // is stable and the user sees a UI-matched loading state.
   if (!nativeAd) {
+    if (format === 'compact') {
+      return (
+        <View style={styles.compactCard}>
+          <View style={styles.compactHeader}>
+            <SkeletonBlock style={styles.skCompactBadge} />
+            <SkeletonBlock style={styles.skCompactHeadline} />
+          </View>
+          <View style={styles.compactBodyRow}>
+            <SkeletonBlock style={styles.skCompactIcon} />
+            <View style={styles.compactCopy}>
+              <SkeletonBlock style={styles.skCompactBody1} />
+              <SkeletonBlock style={styles.skCompactBody2} />
+            </View>
+            <SkeletonBlock style={styles.skCompactCta} />
+          </View>
+        </View>
+      );
+    }
+
     return (
-      <View style={styles.card}>
+      <View style={styles.mediumCard}>
         <View style={styles.headerRow}>
           <SkeletonBlock style={styles.skIcon} />
           <View style={styles.headerText}>
@@ -87,8 +117,54 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
     );
   }
 
+  if (format === 'compact') {
+    return (
+      <NativeAdView nativeAd={nativeAd} style={styles.compactCard}>
+        <View style={styles.compactHeader}>
+          <Text style={styles.adBadge}>Ad</Text>
+          <NativeAsset assetType={NativeAssetType.HEADLINE}>
+            <Text style={styles.compactHeadline} numberOfLines={1}>
+              {nativeAd.headline}
+            </Text>
+          </NativeAsset>
+        </View>
+
+        <View style={styles.compactBodyRow}>
+          {nativeAd.icon?.url ? (
+            <NativeAsset assetType={NativeAssetType.ICON}>
+              <Image source={{ uri: nativeAd.icon.url }} style={styles.compactIcon} />
+            </NativeAsset>
+          ) : null}
+
+          <View style={styles.compactCopy}>
+            <NativeAsset assetType={NativeAssetType.BODY}>
+              <Text style={styles.compactBody} numberOfLines={2}>
+                {nativeAd.body}
+              </Text>
+            </NativeAsset>
+            {nativeAd.advertiser ? (
+              <NativeAsset assetType={NativeAssetType.ADVERTISER}>
+                <Text style={styles.compactAdvertiser} numberOfLines={1}>
+                  {nativeAd.advertiser}
+                </Text>
+              </NativeAsset>
+            ) : null}
+          </View>
+
+          <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
+            <View style={styles.compactCta}>
+              <Text style={styles.compactCtaText} numberOfLines={1}>
+                {nativeAd.callToAction || 'Open'}
+              </Text>
+            </View>
+          </NativeAsset>
+        </View>
+      </NativeAdView>
+    );
+  }
+
   return (
-    <NativeAdView nativeAd={nativeAd} style={styles.card}>
+    <NativeAdView nativeAd={nativeAd} style={styles.mediumCard}>
       <View style={styles.headerRow}>
         {nativeAd.icon?.url ? (
           <NativeAsset assetType={NativeAssetType.ICON}>
@@ -132,14 +208,80 @@ function NativeAdCard({ placement }: NativeAdCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
+  mediumCard: {
     marginTop: 4,
     marginBottom: 12,
     padding: 12,
+    paddingRight: 38,
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+  },
+  compactCard: {
+    minHeight: 102,
+    marginHorizontal: 10,
+    marginTop: 6,
+    marginBottom: 8,
+    padding: 10,
+    paddingRight: 38,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  compactHeader: {
+    minHeight: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  compactHeadline: {
+    flexShrink: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  compactBodyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    marginTop: 7,
+  },
+  compactIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 9,
+    backgroundColor: '#F1F5F9',
+  },
+  compactCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  compactBody: {
+    fontSize: 11.5,
+    lineHeight: 15,
+    color: '#475569',
+  },
+  compactAdvertiser: {
+    marginTop: 2,
+    fontSize: 10.5,
+    color: '#64748B',
+  },
+  compactCta: {
+    minWidth: 76,
+    maxWidth: 96,
+    minHeight: 38,
+    paddingHorizontal: 10,
+    borderRadius: 9,
+    backgroundColor: '#0E9F6E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactCtaText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   headerRow: {
     flexDirection: 'row',
@@ -244,6 +386,37 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 10,
     marginTop: 10,
+  },
+  skCompactBadge: {
+    width: 22,
+    height: 16,
+    borderRadius: 4,
+  },
+  skCompactHeadline: {
+    flex: 1,
+    height: 12,
+    borderRadius: 6,
+  },
+  skCompactIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 9,
+  },
+  skCompactBody1: {
+    width: '100%',
+    height: 9,
+    borderRadius: 5,
+    marginBottom: 7,
+  },
+  skCompactBody2: {
+    width: '72%',
+    height: 9,
+    borderRadius: 5,
+  },
+  skCompactCta: {
+    width: 80,
+    height: 38,
+    borderRadius: 9,
   },
 });
 

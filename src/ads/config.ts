@@ -31,6 +31,7 @@ export type AdsConfig = {
   native_home: boolean;
   native_article: boolean;
   native_category: boolean;
+  native_tools: boolean;
 
   // APP UPDATE
   force_update: boolean;
@@ -99,7 +100,8 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
 
   native_home: true,
   native_article: true,
-  native_category: false,
+  native_category: true,
+  native_tools: true,
 
   force_update: false,
   latest_version: '1.0.0',
@@ -129,7 +131,7 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
 //   category -> LoanCalculatorScreen     (the loan-type input page)
 //   tools    -> converter / investment / other-calculator tool screens
 export type BannerPlacement = 'home' | 'article' | 'category' | 'tools';
-export type NativePlacement = 'home' | 'article' | 'category';
+export type NativePlacement = 'home' | 'article' | 'category' | 'tools';
 
 export function isBannerVisible(config: AdsConfig, placement: BannerPlacement): boolean {
   if (!config.ads_enabled || !config.banner_enabled) {
@@ -160,6 +162,8 @@ export function isNativeVisible(config: AdsConfig, placement: NativePlacement): 
       return config.native_article;
     case 'category':
       return config.native_category;
+    case 'tools':
+      return config.native_tools;
     default:
       return false;
   }

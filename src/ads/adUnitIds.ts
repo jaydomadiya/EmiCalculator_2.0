@@ -2,7 +2,6 @@ import { TestIds } from 'react-native-google-mobile-ads';
 import { AdsConfig } from './config';
 
 export type AdUnitIds = {
-  banner: string;
   interstitial: string;
   native: string;
   appOpen: string;
@@ -16,7 +15,6 @@ export type AdUnitIds = {
 export function getAdUnitIds(config: AdsConfig): AdUnitIds {
   if (__DEV__) {
     return {
-      banner: TestIds.BANNER,
       interstitial: TestIds.INTERSTITIAL,
       native: TestIds.NATIVE,
       appOpen: TestIds.APP_OPEN,
@@ -25,7 +23,6 @@ export function getAdUnitIds(config: AdsConfig): AdUnitIds {
   }
 
   return {
-    banner: config.android_banner_ad_unit_id,
     interstitial: config.android_interstitial_ad_unit_id,
     native: config.android_native_ad_unit_id,
     appOpen: config.android_app_open_ad_unit_id,

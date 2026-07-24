@@ -7,7 +7,6 @@ import { getLoanType } from '../data/loanTypes';
 import { CalculationResult, LoanFormState } from '../types/loan';
 import { formatCurrency, formatDate } from '../utils/emi';
 import { THEME, CHART_PALETTE } from '../theme/colors';
-import AdBanner from '../ads/AdBanner';
 import NativeAdCard from '../ads/NativeAdCard';
 
 const COLORS = {
@@ -382,7 +381,7 @@ function LoanResultScreen({ form, result, onBack, onDone }: Props) {
       </ScrollView>
 
       <View style={[styles.adSlot, { paddingBottom: insets.bottom }]}>
-        <AdBanner placement="article" />
+        <NativeAdCard placement="article" format="compact" />
       </View>
     </View>
   );
