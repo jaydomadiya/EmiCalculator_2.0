@@ -19,10 +19,7 @@ import { THEME, hexToRgba } from '../theme/colors';
 
 const PACKAGE_NAME = 'com.aryan_raval.EMICalculator';
 const STORE_URL = `https://play.google.com/store/apps/details?id=${PACKAGE_NAME}`;
-// Hosted on Netlify — this is the permanent site alias, not a deploy-specific
-// preview URL, so future edits (redeployed via drag-and-drop) show up here
-// automatically without an app update.
-const PRIVACY_POLICY_URL = 'https://polite-mousse-747690.netlify.app/';
+const PRIVACY_POLICY_URL = 'https://loansmartloanemicalculatorsrth.blogspot.com/2026/07/privacy-policy.html';
 
 type Props = {
   onBackHome: () => void;
