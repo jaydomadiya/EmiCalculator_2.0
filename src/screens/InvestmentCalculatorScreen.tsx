@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAds } from '../ads/AdsProvider';
 import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { THEME, hexToRgba } from '../theme/colors';
 import { InvestmentCurrency, InvestmentResult, InvestmentTool } from '../types/investment';
@@ -370,6 +371,7 @@ function InvestmentResultView({
 
 function InvestmentCalculatorScreen({ tool, onBack }: Props) {
   const insets = useSafeAreaInsets();
+  const { registerInteraction } = useAds();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [compoundOpen, setCompoundOpen] = useState(false);
@@ -466,7 +468,11 @@ function InvestmentCalculatorScreen({ tool, onBack }: Props) {
     return (
       <InvestmentResultView
         result={result}
-        onBack={() => setResult(null)}
+        onBack={() => {
+          void registerInteraction('back')
+            .catch(() => false)
+            .finally(() => setResult(null));
+        }}
         onDone={onBack}
       />
     );

@@ -12,6 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAds } from '../ads/AdsProvider';
 import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { THEME, hexToRgba } from '../theme/colors';
 
@@ -216,6 +217,7 @@ function ResultRow({ label, value, isLast }: { label: string; value: string; isL
 
 function SavingsGoalScreen({ onBack }: Props) {
   const insets = useSafeAreaInsets();
+  const { registerInteraction } = useAds();
   const [screen, setScreen] = useState<'form' | 'result'>('form');
   const [mode, setMode] = useState<Mode>('monthly');
   const [goal, setGoal] = useState('');
@@ -291,7 +293,9 @@ function SavingsGoalScreen({ onBack }: Props) {
 
   const handleBack = () => {
     if (screen === 'result') {
-      setScreen('form');
+      void registerInteraction('back')
+        .catch(() => false)
+        .finally(() => setScreen('form'));
       return;
     }
     onBack();

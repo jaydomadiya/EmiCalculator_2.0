@@ -20,6 +20,7 @@ import { getAdUnitIds } from './adUnitIds';
 import { AdsConfig, DEFAULT_ADS_CONFIG } from './config';
 import CustomAdModal from './CustomAdModal';
 import SponsorAdScreen from './SponsorAdScreen';
+import InterstitialAdLoader from './interstitial-ad-loader';
 
 export type InteractionKind = 'click' | 'back';
 
@@ -28,6 +29,15 @@ const APP_OPEN_MIN_INTERVAL_MS = 60000;
 // Onboarding briefly waits for a preloaded ad, but never blocks the user's flow
 // when the network is slow or AdMob has no inventory.
 const ONBOARDING_INTERSTITIAL_WAIT_MS = 2500;
+// Keep malformed Remote Config values from blocking the user for an
+// unreasonable amount of time.
+const MAX_INTERSTITIAL_LOADER_DURATION_SECONDS = 15;
+const INTERSTITIAL_LOADER_FAILSAFE_BUFFER_MS = 5000;
+
+type InterstitialLoaderTiming = {
+  startedAt: number;
+  durationMs: number;
+};
 
 export type RegisterInteractionOptions = {
   // Only Home-screen-originated clicks are eligible to show the custom_link
@@ -41,8 +51,13 @@ type AdsContextValue = {
   config: AdsConfig;
   // Call on every navigation click / hardware back. The provider decides,
   // based on the Remote Config counters + cooldown, whether to surface a
-  // full-screen Google interstitial or the custom-link house ad.
-  registerInteraction: (kind: InteractionKind, opts?: RegisterInteractionOptions) => void;
+  // full-screen Google interstitial or the custom-link house ad. The promise
+  // resolves after an interstitial closes, so back navigation can safely wait
+  // without changing the existing fire-and-forget click flow.
+  registerInteraction: (
+    kind: InteractionKind,
+    opts?: RegisterInteractionOptions,
+  ) => Promise<boolean>;
   // Onboarding is a deliberate full-screen transition point. When Firebase
   // enables ads + interstitials, show one before advancing and resolve after
   // it closes. A missing/no-fill ad resolves false so onboarding never stalls.
@@ -54,7 +69,7 @@ type AdsContextValue = {
 
 const AdsContext = createContext<AdsContextValue>({
   config: DEFAULT_ADS_CONFIG,
-  registerInteraction: () => undefined,
+  registerInteraction: async () => false,
   showOnboardingInterstitial: async () => false,
   maybeShowHomePopup: () => undefined,
 });
@@ -100,7 +115,10 @@ function readAdsConfig(remoteConfig: RemoteConfig): AdsConfig {
     ads_enabled: bool('ads_enabled'),
     banner_enabled: bool('banner_enabled'),
     native_enabled: bool('native_enabled'),
+    native_loader_enabled: bool('native_loader_enabled'),
     interstitial_enabled: bool('interstitial_enabled'),
+    interstitial_loader_enabled: bool('interstitial_loader_enabled'),
+    interstitial_loader_duration_second: num('interstitial_loader_duration_second'),
     app_open_enabled: bool('app_open_enabled'),
     reward_enabled: bool('reward_enabled'),
 
@@ -147,6 +165,7 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<AdsConfig>(DEFAULT_ADS_CONFIG);
   const [customAdVisible, setCustomAdVisible] = useState(false);
   const [homePopupVisible, setHomePopupVisible] = useState(false);
+  const [interstitialLoaderVisible, setInterstitialLoaderVisible] = useState(false);
   const homePopupShownRef = useRef(false);
 
   const configRef = useRef<AdsConfig>(config);
@@ -165,6 +184,8 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   const customClickCountRef = useRef(0);
   const backCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const interstitialLoaderStartedAtRef = useRef(0);
+  const interstitialLoaderFailsafeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const appOpenRef = useRef<AppOpenAd | null>(null);
   const appOpenLoadedRef = useRef(false);
@@ -175,6 +196,55 @@ export function AdsProvider({ children }: { children: ReactNode }) {
   // Those ads background the app, so the following AppState 'active' is a return
   // from our own ad — not a genuine app resume — and must NOT trigger app-open.
   const suppressAppOpenRef = useRef(false);
+
+  const hideInterstitialLoader = useCallback(() => {
+    interstitialLoaderStartedAtRef.current = 0;
+    if (interstitialLoaderFailsafeRef.current) {
+      clearTimeout(interstitialLoaderFailsafeRef.current);
+      interstitialLoaderFailsafeRef.current = null;
+    }
+    setInterstitialLoaderVisible(false);
+  }, []);
+
+  const showInterstitialLoader = useCallback((): InterstitialLoaderTiming | null => {
+    if (!configRef.current.interstitial_loader_enabled) {
+      return null;
+    }
+
+    const configuredSeconds = configRef.current.interstitial_loader_duration_second;
+    const fallbackSeconds = DEFAULT_ADS_CONFIG.interstitial_loader_duration_second;
+    const safeSeconds =
+      Number.isFinite(configuredSeconds) && configuredSeconds >= 0
+        ? Math.min(configuredSeconds, MAX_INTERSTITIAL_LOADER_DURATION_SECONDS)
+        : fallbackSeconds;
+    const durationMs = safeSeconds * 1000;
+    const startedAt = Date.now();
+    interstitialLoaderStartedAtRef.current = startedAt;
+    setInterstitialLoaderVisible(true);
+
+    if (interstitialLoaderFailsafeRef.current) {
+      clearTimeout(interstitialLoaderFailsafeRef.current);
+    }
+    interstitialLoaderFailsafeRef.current = setTimeout(
+      hideInterstitialLoader,
+      durationMs + INTERSTITIAL_LOADER_FAILSAFE_BUFFER_MS,
+    );
+    return { startedAt, durationMs };
+  }, [hideInterstitialLoader]);
+
+  const waitForInterstitialLoaderDuration = useCallback(
+    (timing: InterstitialLoaderTiming | null): Promise<void> => {
+      if (!timing) {
+        return Promise.resolve();
+      }
+      const remaining = timing.durationMs - (Date.now() - timing.startedAt);
+      if (remaining <= 0) {
+        return Promise.resolve();
+      }
+      return new Promise(resolve => setTimeout(resolve, remaining));
+    },
+    [],
+  );
 
   // Fetch + activate Firebase Remote Config once on mount. Defaults are set to
   // DEFAULT_ADS_CONFIG first so getAll() always has every key even before the
@@ -241,12 +311,15 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       interstitialLoadedRef.current = true;
       notifyInterstitialLoadWaiters(true);
     });
+    ad.addAdEventListener(AdEventType.OPENED, hideInterstitialLoader);
     ad.addAdEventListener(AdEventType.CLOSED, () => {
+      hideInterstitialLoader();
       interstitialLoadedRef.current = false;
       interstitialShowingRef.current = false;
       loadInterstitial();
     });
     ad.addAdEventListener(AdEventType.ERROR, () => {
+      hideInterstitialLoader();
       // Real ad units no-fill routinely. Without a retry a single failed load
       // would kill interstitials for the whole session, so reload after a delay.
       interstitialLoadedRef.current = false;
@@ -258,7 +331,7 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       retryTimerRef.current = setTimeout(() => loadInterstitial(), 30000);
     });
     ad.load();
-  }, [notifyInterstitialLoadWaiters]);
+  }, [hideInterstitialLoader, notifyInterstitialLoadWaiters]);
 
   useEffect(() => {
     // Re-runs once Remote Config resolves (config identity changes), so the
@@ -267,6 +340,9 @@ export function AdsProvider({ children }: { children: ReactNode }) {
     return () => {
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current);
+      }
+      if (interstitialLoaderFailsafeRef.current) {
+        clearTimeout(interstitialLoaderFailsafeRef.current);
       }
     };
   }, [loadInterstitial, config]);
@@ -355,24 +431,60 @@ export function AdsProvider({ children }: { children: ReactNode }) {
     };
   }, [loadAppOpen, showAppOpenIfReady, config]);
 
-  const showInterstitialIfReady = useCallback((now: number): boolean => {
+  const showInterstitialIfReady = useCallback(async (
+    now: number,
+    shouldShowLoader: boolean,
+  ): Promise<boolean> => {
     const ad = interstitialRef.current;
     if (ad && interstitialLoadedRef.current && !interstitialShowingRef.current) {
       lastFullScreenAtRef.current = now;
       interstitialLoadedRef.current = false;
       interstitialShowingRef.current = true;
       suppressAppOpenRef.current = true;
-      Promise.resolve()
-        .then(() => ad.show())
-        .catch(() => {
+      // Back navigation must present the already-preloaded ad immediately.
+      // Click-driven interstitials keep the Firebase-controlled branded loader.
+      const loaderTiming = shouldShowLoader ? showInterstitialLoader() : null;
+
+      await waitForInterstitialLoaderDuration(loaderTiming);
+
+      return new Promise(resolve => {
+        let settled = false;
+        let unsubscribeClosed: () => void = () => undefined;
+        let unsubscribeError: () => void = () => undefined;
+
+        const finish = (wasShown: boolean) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          unsubscribeClosed();
+          unsubscribeError();
+          hideInterstitialLoader();
           interstitialShowingRef.current = false;
-          suppressAppOpenRef.current = false;
-          loadInterstitial();
-        });
-      return true;
+          if (!wasShown) {
+            suppressAppOpenRef.current = false;
+          }
+          resolve(wasShown);
+        };
+
+        unsubscribeClosed = ad.addAdEventListener(AdEventType.CLOSED, () => finish(true));
+        unsubscribeError = ad.addAdEventListener(AdEventType.ERROR, () => finish(false));
+
+        Promise.resolve()
+          .then(() => ad.show())
+          .catch(() => {
+            finish(false);
+            loadInterstitial();
+          });
+      });
     }
     return false;
-  }, [loadInterstitial]);
+  }, [
+    hideInterstitialLoader,
+    loadInterstitial,
+    showInterstitialLoader,
+    waitForInterstitialLoaderDuration,
+  ]);
 
   const waitForInterstitial = useCallback((): Promise<boolean> => {
     if (interstitialRef.current && interstitialLoadedRef.current) {
@@ -408,12 +520,15 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
+    const loaderTiming = showInterstitialLoader();
     const isReady = await waitForInterstitial();
     const ad = interstitialRef.current;
     if (!isReady || !ad || !interstitialLoadedRef.current || interstitialShowingRef.current) {
+      hideInterstitialLoader();
       return false;
     }
 
+    await waitForInterstitialLoaderDuration(loaderTiming);
     lastFullScreenAtRef.current = Date.now();
     interstitialLoadedRef.current = false;
     interstitialShowingRef.current = true;
@@ -432,6 +547,7 @@ export function AdsProvider({ children }: { children: ReactNode }) {
         unsubscribeClosed();
         unsubscribeError();
         interstitialShowingRef.current = false;
+        hideInterstitialLoader();
         if (!wasShown) {
           suppressAppOpenRef.current = false;
         }
@@ -448,13 +564,22 @@ export function AdsProvider({ children }: { children: ReactNode }) {
           loadInterstitial();
         });
     });
-  }, [loadInterstitial, waitForInterstitial]);
+  }, [
+    hideInterstitialLoader,
+    loadInterstitial,
+    showInterstitialLoader,
+    waitForInterstitial,
+    waitForInterstitialLoaderDuration,
+  ]);
 
   const registerInteraction = useCallback(
-    (kind: InteractionKind, opts?: RegisterInteractionOptions) => {
+    async (
+      kind: InteractionKind,
+      opts?: RegisterInteractionOptions,
+    ): Promise<boolean> => {
       const cfg = configRef.current;
       if (!cfg.ads_enabled) {
-        return;
+        return false;
       }
       const customAdEligible = opts?.customAdEligible ?? false;
 
@@ -498,11 +623,15 @@ export function AdsProvider({ children }: { children: ReactNode }) {
           b % cfg.custom_link_after_back === 0;
       }
 
-      // One global cooldown covers both ad types, so two full-screen ads never
-      // fire back-to-back. Counters still advance during the cooldown window.
+      // Back interstitials are explicitly configured for every back action, so
+      // they do not inherit the click/custom-ad cooldown. Other interactions
+      // retain the shared cooldown and their existing counters.
       const now = Date.now();
-      if (now - lastFullScreenAtRef.current < cfg.interstitial_delay_second * 1000) {
-        return;
+      if (
+        kind !== 'back' &&
+        now - lastFullScreenAtRef.current < cfg.interstitial_delay_second * 1000
+      ) {
+        return false;
       }
 
       // Precedence: the sponsor ad wins when both are due on the same click.
@@ -511,11 +640,12 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       if (customDue) {
         lastFullScreenAtRef.current = now;
         setCustomAdVisible(true);
-        return;
+        return true;
       }
       if (interstitialDue) {
-        showInterstitialIfReady(now);
+        return showInterstitialIfReady(now, kind !== 'back');
       }
+      return false;
     },
     [showInterstitialIfReady],
   );
@@ -538,6 +668,7 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      <InterstitialAdLoader visible={interstitialLoaderVisible} />
       <SponsorAdScreen
         visible={customAdVisible}
         url={config.custom_link}

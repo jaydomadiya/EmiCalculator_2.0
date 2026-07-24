@@ -6,7 +6,10 @@ export type AdsConfig = {
   ads_enabled: boolean;
   banner_enabled: boolean;
   native_enabled: boolean;
+  native_loader_enabled: boolean;
   interstitial_enabled: boolean;
+  interstitial_loader_enabled: boolean;
+  interstitial_loader_duration_second: number;
   app_open_enabled: boolean;
   reward_enabled: boolean;
 
@@ -76,13 +79,17 @@ export const DEFAULT_ADS_CONFIG: AdsConfig = {
   ads_enabled: false,
   banner_enabled: true,
   native_enabled: true,
+  native_loader_enabled: true,
   interstitial_enabled: true,
+  interstitial_loader_enabled: true,
+  interstitial_loader_duration_second: 3,
   app_open_enabled: false,
   reward_enabled: false,
 
   // full-screen ad on every 3rd tap (user example: 1st=loan, 2nd=emi, 3rd=ad)
   interstitial_after_click: 3,
-  interstitial_after_back: 2,
+  // Firebase value 1 means every eligible in-app back action.
+  interstitial_after_back: 1,
   // interstitial_delay_second: 10,
   interstitial_delay_second: 3, // shorter shared cooldown so the every-3rd-tap ad isn't suppressed
 

@@ -14,6 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAds } from '../ads/AdsProvider';
 import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { THEME, hexToRgba } from '../theme/colors';
 
@@ -401,6 +402,7 @@ function AmortizationRow({ item }: { item: ScheduleRow }) {
 
 function LoanAnalysisScreen({ onBack }: Props) {
   const insets = useSafeAreaInsets();
+  const { registerInteraction } = useAds();
   const [screen, setScreen] = useState<ScreenState>('form');
   const [mode, setMode] = useState<AnalysisMode>('base');
   const [calcType, setCalcType] = useState<BaseCalcType>('payment');
@@ -525,11 +527,15 @@ function LoanAnalysisScreen({ onBack }: Props) {
 
   const handleBack = () => {
     if (screen === 'amortization') {
-      setScreen('result');
+      void registerInteraction('back')
+        .catch(() => false)
+        .finally(() => setScreen('result'));
       return;
     }
     if (screen === 'result') {
-      setScreen('form');
+      void registerInteraction('back')
+        .catch(() => false)
+        .finally(() => setScreen('form'));
       return;
     }
     onBack();

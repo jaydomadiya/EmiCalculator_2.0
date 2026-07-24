@@ -4,7 +4,7 @@
  * @format
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, StatusBar, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import mobileAds from 'react-native-google-mobile-ads';
@@ -134,6 +134,7 @@ function AppContent() {
   const { registerInteraction } = useAds();
   const insets = useSafeAreaInsets();
   const didBootstrap = useRef(false);
+  const backNavigationPendingRef = useRef(false);
   const [screen, setScreen] = useState<Screen>('loading');
   const [loanForm, setLoanForm] = useState<LoanFormState | null>(null);
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
@@ -192,18 +193,31 @@ function AppContent() {
     bootstrap();
   }, [i18n]);
 
+  const navigateBackAfterAd = useCallback(
+    (target: Screen) => {
+      if (backNavigationPendingRef.current) {
+        return;
+      }
+      backNavigationPendingRef.current = true;
+
+      void registerInteraction('back')
+        .catch(() => false)
+        .finally(() => {
+          setScreen(target);
+          backNavigationPendingRef.current = false;
+        });
+    },
+    [registerInteraction],
+  );
+
   useEffect(() => {
     const handleHardwareBack = () => {
-      const exitScreens = ['home', 'onboarding', 'language', 'loading'];
-      if (!exitScreens.includes(screen)) {
-        registerInteraction('back');
-      }
       switch (screen) {
         case 'result':
-          setScreen('calculator');
+          navigateBackAfterAd('calculator');
           return true;
         case 'loanComparisonResult':
-          setScreen('loanComparison');
+          navigateBackAfterAd('loanComparison');
           return true;
         case 'calculator':
         case 'currencyConverter':
@@ -218,10 +232,10 @@ function AppContent() {
         case 'savingsGoal':
         case 'investmentCalculator':
         case 'otherCalculator':
-          setScreen('home');
+          navigateBackAfterAd('home');
           return true;
         case 'settingsLanguage':
-          setScreen('settings');
+          navigateBackAfterAd('settings');
           return true;
         default:
           // On 'home', 'onboarding', 'language', and 'loading' there is no
@@ -232,15 +246,11 @@ function AppContent() {
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', handleHardwareBack);
     return () => subscription.remove();
-  }, [screen, registerInteraction]);
+  }, [navigateBackAfterAd, screen]);
 
   // Shared by every on-screen back-arrow button, so a tap on the header's `←`
-  // registers an ad interaction exactly like the hardware back button does
-  // (registerInteraction('back') in the hardwareBackPress handler above).
-  const handleBack = (target: Screen) => {
-    registerInteraction('back');
-    setScreen(target);
-  };
+  // follows the same ad-then-navigation flow as the hardware back button.
+  const handleBack = navigateBackAfterAd;
 
   const handleLanguageSelected = async (languageCode: string) => {
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   NativeAd,
   NativeAdChoicesPlacement,
@@ -10,14 +11,31 @@ import {
   NativeMediaView,
 } from 'react-native-google-mobile-ads';
 import { getAdUnitIds } from './adUnitIds';
-import { SkeletonBlock } from './AdSkeleton';
 import { useAds } from './AdsProvider';
 import { isNativeVisible, NativePlacement } from './config';
+import NativeAdLoader from './NativeAdLoader';
+import { THEME, hexToRgba } from '../theme/colors';
 
 type NativeAdCardProps = {
   placement: NativePlacement;
   format?: 'compact' | 'medium';
 };
+
+function AdCardBackground() {
+  return (
+    <>
+      <LinearGradient
+        pointerEvents="none"
+        colors={[THEME.cardBg, '#F7FAF8', '#FFFCF4']}
+        locations={[0, 0.62, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View pointerEvents="none" style={styles.goldAccent} />
+    </>
+  );
+}
 
 // Google native advanced ads styled to match the app. The compact layout
 // replaces the old banner slots without consuming a large part of fixed-footer
@@ -77,49 +95,16 @@ function NativeAdCard({ placement, format = 'medium' }: NativeAdCardProps) {
     return null;
   }
 
-  // Ad still loading: show a skeleton shaped like the real card so the layout
-  // is stable and the user sees a UI-matched loading state.
+  // Firebase can hide the loader while keeping the ad request active. When
+  // enabled, the premium placeholder matches the final compact/medium layout.
   if (!nativeAd) {
-    if (format === 'compact') {
-      return (
-        <View style={styles.compactCard}>
-          <View style={styles.compactHeader}>
-            <SkeletonBlock style={styles.skCompactBadge} />
-            <SkeletonBlock style={styles.skCompactHeadline} />
-          </View>
-          <View style={styles.compactBodyRow}>
-            <SkeletonBlock style={styles.skCompactIcon} />
-            <View style={styles.compactCopy}>
-              <SkeletonBlock style={styles.skCompactBody1} />
-              <SkeletonBlock style={styles.skCompactBody2} />
-            </View>
-            <SkeletonBlock style={styles.skCompactCta} />
-          </View>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.mediumCard}>
-        <View style={styles.headerRow}>
-          <SkeletonBlock style={styles.skIcon} />
-          <View style={styles.headerText}>
-            <SkeletonBlock style={styles.skLineLg} />
-            <SkeletonBlock style={styles.skLineSm} />
-          </View>
-          <SkeletonBlock style={styles.skBadge} />
-        </View>
-        <SkeletonBlock style={styles.skBodyLine1} />
-        <SkeletonBlock style={styles.skBodyLine2} />
-        <SkeletonBlock style={styles.skMedia} />
-        <SkeletonBlock style={styles.skCta} />
-      </View>
-    );
+    return config.native_loader_enabled ? <NativeAdLoader format={format} /> : null;
   }
 
   if (format === 'compact') {
     return (
       <NativeAdView nativeAd={nativeAd} style={styles.compactCard}>
+        <AdCardBackground />
         <View style={styles.compactHeader}>
           <Text style={styles.adBadge}>Ad</Text>
           <NativeAsset assetType={NativeAssetType.HEADLINE}>
@@ -165,6 +150,7 @@ function NativeAdCard({ placement, format = 'medium' }: NativeAdCardProps) {
 
   return (
     <NativeAdView nativeAd={nativeAd} style={styles.mediumCard}>
+      <AdCardBackground />
       <View style={styles.headerRow}>
         {nativeAd.icon?.url ? (
           <NativeAsset assetType={NativeAssetType.ICON}>
@@ -208,15 +194,29 @@ function NativeAdCard({ placement, format = 'medium' }: NativeAdCardProps) {
 }
 
 const styles = StyleSheet.create({
+  goldAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 14,
+    bottom: 14,
+    width: 3,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
+    backgroundColor: THEME.gold,
+    opacity: 0.78,
+  },
   mediumCard: {
     marginTop: 4,
     marginBottom: 12,
     padding: 12,
     paddingRight: 38,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    borderCurve: 'continuous',
+    overflow: 'hidden',
+    backgroundColor: THEME.cardBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: hexToRgba(THEME.gold, 0.24),
+    boxShadow: `0 8px 24px ${hexToRgba(THEME.primaryDark, 0.08)}`,
   },
   compactCard: {
     minHeight: 102,
@@ -226,9 +226,12 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingRight: 38,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    borderCurve: 'continuous',
+    overflow: 'hidden',
+    backgroundColor: THEME.cardBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: hexToRgba(THEME.gold, 0.24),
+    boxShadow: `0 8px 24px ${hexToRgba(THEME.primaryDark, 0.08)}`,
   },
   compactHeader: {
     minHeight: 18,
@@ -240,7 +243,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 13,
     fontWeight: '700',
-    color: '#0F172A',
+    color: THEME.text,
   },
   compactBodyRow: {
     flexDirection: 'row',
@@ -252,7 +255,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 9,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: hexToRgba(THEME.primary, 0.08),
   },
   compactCopy: {
     flex: 1,
@@ -261,12 +264,12 @@ const styles = StyleSheet.create({
   compactBody: {
     fontSize: 11.5,
     lineHeight: 15,
-    color: '#475569',
+    color: THEME.subtext,
   },
   compactAdvertiser: {
     marginTop: 2,
     fontSize: 10.5,
-    color: '#64748B',
+    color: THEME.subtext,
   },
   compactCta: {
     minWidth: 76,
@@ -274,7 +277,7 @@ const styles = StyleSheet.create({
     minHeight: 38,
     paddingHorizontal: 10,
     borderRadius: 9,
-    backgroundColor: '#0E9F6E',
+    backgroundColor: THEME.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: hexToRgba(THEME.primary, 0.08),
   },
   headerText: {
     flex: 1,
@@ -300,11 +303,11 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: THEME.text,
   },
   advertiser: {
     fontSize: 12,
-    color: '#64748B',
+    color: THEME.subtext,
     marginTop: 1,
   },
   adBadge: {
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: 12.5,
-    color: '#475569',
+    color: THEME.subtext,
     marginTop: 8,
   },
   media: {
@@ -327,11 +330,11 @@ const styles = StyleSheet.create({
     height: 140,
     marginTop: 10,
     borderRadius: 10,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: hexToRgba(THEME.primary, 0.08),
   },
   cta: {
     marginTop: 10,
-    backgroundColor: '#0E9F6E',
+    backgroundColor: THEME.primary,
     borderRadius: 10,
     paddingVertical: 11,
     alignItems: 'center',
@@ -340,83 +343,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  // Loading-skeleton shapes (mirror the real card layout above).
-  skIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-  },
-  skLineLg: {
-    height: 13,
-    width: '65%',
-    borderRadius: 6,
-    marginBottom: 7,
-  },
-  skLineSm: {
-    height: 10,
-    width: '40%',
-    borderRadius: 6,
-  },
-  skBadge: {
-    width: 22,
-    height: 14,
-    borderRadius: 4,
-  },
-  skBodyLine1: {
-    height: 10,
-    width: '100%',
-    borderRadius: 6,
-    marginTop: 12,
-  },
-  skBodyLine2: {
-    height: 10,
-    width: '80%',
-    borderRadius: 6,
-    marginTop: 7,
-  },
-  skMedia: {
-    width: '100%',
-    height: 140,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  skCta: {
-    height: 42,
-    width: '100%',
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  skCompactBadge: {
-    width: 22,
-    height: 16,
-    borderRadius: 4,
-  },
-  skCompactHeadline: {
-    flex: 1,
-    height: 12,
-    borderRadius: 6,
-  },
-  skCompactIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 9,
-  },
-  skCompactBody1: {
-    width: '100%',
-    height: 9,
-    borderRadius: 5,
-    marginBottom: 7,
-  },
-  skCompactBody2: {
-    width: '72%',
-    height: 9,
-    borderRadius: 5,
-  },
-  skCompactCta: {
-    width: 80,
-    height: 38,
-    borderRadius: 9,
   },
 });
 

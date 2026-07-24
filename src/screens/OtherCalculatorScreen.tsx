@@ -3,6 +3,7 @@ import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'reac
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAds } from '../ads/AdsProvider';
 import KeyboardAwareScrollView from '../components/KeyboardAwareScrollView';
 import { THEME, hexToRgba } from '../theme/colors';
 import { InvestmentCurrency } from '../types/investment';
@@ -278,6 +279,7 @@ function ResultScreen({
 
 function OtherCalculatorScreen({ tool, onBack }: Props) {
   const insets = useSafeAreaInsets();
+  const { registerInteraction } = useAds();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [selectOpen, setSelectOpen] = useState(false);
@@ -355,7 +357,17 @@ function OtherCalculatorScreen({ tool, onBack }: Props) {
   };
 
   if (result) {
-    return <ResultScreen result={result} onBack={() => setResult(null)} onDone={onBack} />;
+    return (
+      <ResultScreen
+        result={result}
+        onBack={() => {
+          void registerInteraction('back')
+            .catch(() => false)
+            .finally(() => setResult(null));
+        }}
+        onDone={onBack}
+      />
+    );
   }
 
   return (
