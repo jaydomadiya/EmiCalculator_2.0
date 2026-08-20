@@ -34,6 +34,29 @@ const ONBOARDING_INTERSTITIAL_WAIT_MS = 2500;
 const MAX_INTERSTITIAL_LOADER_DURATION_SECONDS = 15;
 const INTERSTITIAL_LOADER_FAILSAFE_BUFFER_MS = 5000;
 
+function getAdErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return 'Unknown AdMob error';
+  }
+}
+
+function logAdMobError(format: string, unitId: string, error: unknown) {
+  console.warn(`[AdMob] ${format} failed`, {
+    unitId,
+    error: getAdErrorMessage(error),
+  });
+}
+
 type InterstitialLoaderTiming = {
   startedAt: number;
   durationMs: number;
@@ -301,7 +324,8 @@ export function AdsProvider({ children }: { children: ReactNode }) {
     if (!cfg.ads_enabled || !cfg.interstitial_enabled) {
       return;
     }
-    const ad = InterstitialAd.createForAdRequest(getAdUnitIds(cfg).interstitial, {
+    const unitId = getAdUnitIds(cfg).interstitial;
+    const ad = InterstitialAd.createForAdRequest(unitId, {
       requestNonPersonalizedAdsOnly: false,
     });
     interstitialRef.current = ad;
@@ -318,7 +342,8 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       interstitialShowingRef.current = false;
       loadInterstitial();
     });
-    ad.addAdEventListener(AdEventType.ERROR, () => {
+    ad.addAdEventListener(AdEventType.ERROR, (error: unknown) => {
+      logAdMobError('Interstitial ad', unitId, error);
       hideInterstitialLoader();
       // Real ad units no-fill routinely. Without a retry a single failed load
       // would kill interstitials for the whole session, so reload after a delay.
@@ -375,7 +400,8 @@ export function AdsProvider({ children }: { children: ReactNode }) {
     if (!cfg.ads_enabled || !cfg.app_open_enabled) {
       return;
     }
-    const ad = AppOpenAd.createForAdRequest(getAdUnitIds(cfg).appOpen, {
+    const unitId = getAdUnitIds(cfg).appOpen;
+    const ad = AppOpenAd.createForAdRequest(unitId, {
       requestNonPersonalizedAdsOnly: false,
     });
     appOpenRef.current = ad;
@@ -396,7 +422,8 @@ export function AdsProvider({ children }: { children: ReactNode }) {
       appOpenShowingRef.current = false;
       loadAppOpen();
     });
-    ad.addAdEventListener(AdEventType.ERROR, () => {
+    ad.addAdEventListener(AdEventType.ERROR, (error: unknown) => {
+      logAdMobError('App open ad', unitId, error);
       appOpenLoadedRef.current = false;
       appOpenShowingRef.current = false;
     });

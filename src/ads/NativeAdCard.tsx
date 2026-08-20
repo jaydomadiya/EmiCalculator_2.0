@@ -21,6 +21,24 @@ type NativeAdCardProps = {
   format?: 'compact' | 'medium';
 };
 
+const NATIVE_AD_LOAD_TIMEOUT_MS = 15000;
+
+function getAdErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return 'Unknown AdMob error';
+  }
+}
+
 function AdCardBackground() {
   return (
     <>
@@ -57,8 +75,16 @@ function NativeAdCard({ placement, format = 'medium' }: NativeAdCardProps) {
     }
     let current: NativeAd | null = null;
     let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     setNativeAd(null);
     setFailed(false);
+
+    timeout = setTimeout(() => {
+      if (!cancelled) {
+        console.warn('[AdMob] Native ad load timed out', { placement, format, unitId });
+        setFailed(true);
+      }
+    }, NATIVE_AD_LOAD_TIMEOUT_MS);
 
     NativeAd.createForAdRequest(unitId, {
       requestNonPersonalizedAdsOnly: false,
@@ -73,19 +99,36 @@ function NativeAdCard({ placement, format = 'medium' }: NativeAdCardProps) {
           ad.destroy();
           return;
         }
+        if (timeout) {
+          clearTimeout(timeout);
+          timeout = null;
+        }
         current = ad;
         setNativeAd(ad);
       })
       // Load failed (e.g. no-fill): mark failed so the slot collapses instead
       // of showing a skeleton forever.
-      .catch(() => {
+      .catch((error: unknown) => {
         if (!cancelled) {
+          if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+          }
+          console.warn('[AdMob] Native ad failed to load', {
+            placement,
+            format,
+            unitId,
+            error: getAdErrorMessage(error),
+          });
           setFailed(true);
         }
       });
 
     return () => {
       cancelled = true;
+      if (timeout) {
+        clearTimeout(timeout);
+      }
       current?.destroy();
       setNativeAd(null);
     };
