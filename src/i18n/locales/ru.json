@@ -19,6 +19,9 @@
     "other": "ДРУГИЕ КАЛЬКУЛЯТОРЫ"
   },
   "tiles": {
+    "converter": "Конвертер",
+    "emiCalculator": "Калькулятор EMI",
+    "otherCalculators": "Другие калькуляторы",
     "currencyConverter": "Конвертер валют",
     "cryptoConverter": "Конвертер криптовалют",
     "customRate": "Свой курс",

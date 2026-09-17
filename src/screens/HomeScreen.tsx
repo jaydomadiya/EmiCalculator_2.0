@@ -7,95 +7,56 @@ import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { CATEGORY_PALETTE as PALETTE, THEME as COLORS, hexToRgba } from '../theme/colors';
+import { ConverterTool } from '../types/converter';
+
+export type { ConverterTool };
 
 const DEFAULT_FAB_LOAN_TYPE = 'personalLoan';
 
-export type ConverterTool =
-  | 'currencyConverter'
-  | 'cryptoConverter'
-  | 'customRate'
-  | 'currencyList'
-  | 'chart'
-  | 'settings'
-  | 'loanComparison'
-  | 'loanAnalysis'
-  | 'homeAffordability'
-  | 'savingsGoal'
-  | 'fixedDeposit'
-  | 'recurringDeposit'
-  | 'sipCalculator'
-  | 'returnOnInvestment'
-  | 'creditCardPayoff'
-  | 'creditCardMinPayment'
-  | 'breakEvenSellPrice'
-  | 'compoundInterest';
-
-type TileItem = {
+type HomeEntry = {
+  titleKey: string;
   labelKey: string;
   icon: string;
   color: string;
-  loanTypeKey?: string;
-  action?: ConverterTool;
+  action: ConverterTool;
 };
 
-type Section = {
-  titleKey: string;
-  items: TileItem[];
-};
-
-const SECTIONS: Section[] = [
+const HOME_ENTRIES: HomeEntry[] = [
   {
     titleKey: 'sections.converter',
-    items: [
-      { labelKey: 'tiles.currencyConverter', icon: 'cash-multiple', color: PALETTE.sky, action: 'currencyConverter' },
-      { labelKey: 'tiles.cryptoConverter', icon: 'bitcoin', color: PALETTE.amber, action: 'cryptoConverter' },
-      { labelKey: 'tiles.customRate', icon: 'hand-coin-outline', color: PALETTE.teal, action: 'customRate' },
-      { labelKey: 'tiles.currencyList', icon: 'format-list-bulleted-square', color: PALETTE.indigo, action: 'currencyList' },
-    ],
+    labelKey: 'tiles.converter',
+    icon: 'swap-horizontal-bold',
+    color: PALETTE.sky,
+    action: 'converterList',
   },
   {
     titleKey: 'sections.emiCalculator',
-    items: [
-      { labelKey: 'tiles.personalLoan', icon: 'account-cash-outline', color: PALETTE.emerald, loanTypeKey: 'personalLoan' },
-      { labelKey: 'tiles.mortgageLoan', icon: 'home-city-outline', color: PALETTE.indigo, loanTypeKey: 'mortgageLoan' },
-      { labelKey: 'tiles.carLoan', icon: 'car-side', color: PALETTE.coral, loanTypeKey: 'carLoan' },
-      { labelKey: 'tiles.businessLoan', icon: 'briefcase-variant-outline', color: PALETTE.plum, loanTypeKey: 'businessLoan' },
-      { labelKey: 'tiles.goldLoan', icon: 'gold', color: PALETTE.gold, loanTypeKey: 'goldLoan' },
-      { labelKey: 'tiles.studentLoan', icon: 'school-outline', color: PALETTE.sky, loanTypeKey: 'studentLoan' },
-      { labelKey: 'tiles.cashLoan', icon: 'cash-fast', color: PALETTE.amber, loanTypeKey: 'cashLoan' },
-      { labelKey: 'tiles.creditLoan', icon: 'credit-card-outline', color: PALETTE.rose, loanTypeKey: 'creditLoan' },
-    ],
+    labelKey: 'tiles.emiCalculator',
+    icon: 'calculator-variant',
+    color: PALETTE.emerald,
+    action: 'emiCalculatorList',
   },
   {
     titleKey: 'sections.financialPlanner',
-    items: [
-      {
-        labelKey: 'tiles.loanComparison',
-        icon: 'scale-balance',
-        color: PALETTE.violet,
-        action: 'loanComparison',
-      },
-      { labelKey: 'tiles.loanAnalysis', icon: 'chart-line-variant', color: PALETTE.teal, action: 'loanAnalysis' },
-      { labelKey: 'tiles.homeAffordability', icon: 'home-search-outline', color: PALETTE.indigo, action: 'homeAffordability' },
-      { labelKey: 'tiles.savingsGoal', icon: 'piggy-bank-outline', color: PALETTE.rose, action: 'savingsGoal' },
-    ],
+    labelKey: 'sections.financialPlanner',
+    icon: 'chart-areaspline',
+    color: PALETTE.violet,
+    action: 'financialPlannerList',
   },
   {
     titleKey: 'sections.investment',
-    items: [
-      { labelKey: 'tiles.fixedDeposit', icon: 'bank-outline', color: PALETTE.emerald, action: 'fixedDeposit' },
-      { labelKey: 'tiles.recurringDeposit', icon: 'calendar-sync-outline', color: PALETTE.sky, action: 'recurringDeposit' },
-      { labelKey: 'tiles.sipCalculator', icon: 'chart-donut', color: PALETTE.gold, action: 'sipCalculator' },
-      { labelKey: 'tiles.returnOnInvestment', icon: 'trending-up', color: PALETTE.coral, action: 'returnOnInvestment' },
-    ],
+    labelKey: 'sections.investment',
+    icon: 'chart-donut',
+    color: PALETTE.gold,
+    action: 'investmentList',
   },
-];
-
-const OTHER_CALCULATORS: TileItem[] = [
-  { labelKey: 'tiles.creditCardPayoff', icon: 'credit-card-check-outline', color: PALETTE.emerald, action: 'creditCardPayoff' },
-  { labelKey: 'tiles.creditCardMinPayment', icon: 'credit-card-clock-outline', color: PALETTE.rose, action: 'creditCardMinPayment' },
-  { labelKey: 'tiles.breakEvenSellPrice', icon: 'tag-outline', color: PALETTE.amber, action: 'breakEvenSellPrice' },
-  { labelKey: 'tiles.compoundInterest', icon: 'percent-outline', color: PALETTE.violet, action: 'compoundInterest' },
+  {
+    titleKey: 'sections.other',
+    labelKey: 'tiles.otherCalculators',
+    icon: 'calculator-variant-outline',
+    color: PALETTE.amber,
+    action: 'otherCalculatorList',
+  },
 ];
 
 const NAV_ITEMS = [
@@ -104,35 +65,6 @@ const NAV_ITEMS = [
   { key: 'chart', labelKey: 'nav.chart', icon: 'chart-box-outline' },
   { key: 'settings', labelKey: 'nav.settings', icon: 'cog-outline' },
 ];
-
-function Tile({
-  item,
-  label,
-  onPress,
-}: {
-  item: TileItem;
-  label: string;
-  onPress?: () => void;
-}) {
-  return (
-    <TouchableOpacity style={styles.tile} activeOpacity={0.7} onPress={onPress}>
-      <View
-        style={[
-          styles.tileIconCircle,
-          {
-            backgroundColor: hexToRgba(item.color, 0.12),
-            borderColor: hexToRgba(item.color, 0.22),
-          },
-        ]}
-      >
-        <Icon name={item.icon as never} size={23} color={item.color} />
-      </View>
-      <Text style={styles.tileLabel} numberOfLines={2}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
 
 function SectionHeading({ label }: { label: string }) {
   return (
@@ -143,73 +75,33 @@ function SectionHeading({ label }: { label: string }) {
   );
 }
 
-function GridSection({
-  section,
+function CategoryEntryCard({
+  entry,
   t,
-  onSelectLoanType,
-  onOpenConverterTool,
+  onPress,
 }: {
-  section: Section;
+  entry: HomeEntry;
   t: (key: string) => string;
-  onSelectLoanType?: (loanTypeKey: string) => void;
-  onOpenConverterTool?: (tool: ConverterTool) => void;
+  onPress: () => void;
 }) {
   return (
     <View style={styles.section}>
-      <SectionHeading label={t(section.titleKey)} />
-      <View style={styles.sectionCard}>
-        <View style={styles.tileGrid}>
-          {section.items.map(item => {
-            let onPress: (() => void) | undefined;
-            if (item.loanTypeKey && onSelectLoanType) {
-              onPress = () => onSelectLoanType(item.loanTypeKey as string);
-            } else if (item.action && onOpenConverterTool) {
-              const tool = item.action;
-              onPress = () => onOpenConverterTool(tool);
-            }
-
-            return (
-              <Tile key={item.labelKey} item={item} label={t(item.labelKey)} onPress={onPress} />
-            );
-          })}
+      <SectionHeading label={t(entry.titleKey)} />
+      <TouchableOpacity style={styles.entryCard} activeOpacity={0.75} onPress={onPress}>
+        <View
+          style={[
+            styles.entryCardIcon,
+            {
+              backgroundColor: hexToRgba(entry.color, 0.12),
+              borderColor: hexToRgba(entry.color, 0.22),
+            },
+          ]}
+        >
+          <Icon name={entry.icon as never} size={24} color={entry.color} />
         </View>
-      </View>
-    </View>
-  );
-}
-
-function OtherCalculatorsCard({
-  t,
-  onOpenConverterTool,
-}: {
-  t: (key: string) => string;
-  onOpenConverterTool: (tool: ConverterTool) => void;
-}) {
-  return (
-    <View style={styles.section}>
-      <SectionHeading label={t('sections.other')} />
-      <View style={styles.otherCard}>
-        {OTHER_CALCULATORS.map(item => (
-          <TouchableOpacity
-            key={item.labelKey}
-            style={styles.otherItem}
-            activeOpacity={0.7}
-            onPress={item.action ? () => onOpenConverterTool(item.action as ConverterTool) : undefined}
-          >
-            <View
-              style={[
-                styles.otherIconCircle,
-                { backgroundColor: hexToRgba(item.color, 0.14) },
-              ]}
-            >
-              <Icon name={item.icon as never} size={18} color={item.color} />
-            </View>
-            <Text style={styles.otherItemLabel} numberOfLines={2}>
-              {t(item.labelKey)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={styles.entryCardTitle}>{t(entry.labelKey)}</Text>
+        <Icon name="chevron-right" size={22} color={COLORS.subtext} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -360,23 +252,14 @@ function HomeScreen({ onOpenLoanCalculator, onOpenConverterTool }: HomeScreenPro
             slot that previously contained a banner. */}
         <NativeAdCard placement="home" format="compact" />
 
-        {SECTIONS.map(section => (
-          <View key={section.titleKey}>
-            <GridSection
-              section={section}
-              t={t}
-              onSelectLoanType={onOpenLoanCalculator}
-              onOpenConverterTool={onOpenConverterTool}
-            />
+        {HOME_ENTRIES.map(entry => (
+          <View key={entry.titleKey}>
+            <CategoryEntryCard entry={entry} t={t} onPress={() => onOpenConverterTool(entry.action)} />
             <NativeAdCard placement="home" format="compact" />
           </View>
         ))}
 
-        <OtherCalculatorsCard t={t} onOpenConverterTool={onOpenConverterTool} />
-
         <NativeAdCard placement="home" />
-
-        <NativeAdCard placement="home" format="compact" />
       </ScrollView>
 
       <BottomNav
@@ -472,78 +355,35 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     opacity: 0.8,
   },
-  sectionCard: {
+  entryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
     backgroundColor: COLORS.cardBg,
     borderRadius: 16,
-    padding: 14,
-    paddingBottom: 2,
     borderWidth: 1,
     borderColor: COLORS.border,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     elevation: 1,
     shadowColor: COLORS.headerFrom,
     shadowOpacity: 0.05,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
   },
-  tileGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  tile: {
-    width: '25%',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  tileIconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  entryCardIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
-  tileLabel: {
-    fontSize: 11.5,
-    fontWeight: '500',
-    color: COLORS.text,
-    textAlign: 'center',
-    lineHeight: 14,
-  },
-  otherCard: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    backgroundColor: COLORS.cardBg,
-    elevation: 1,
-    shadowColor: COLORS.headerFrom,
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  otherItem: {
-    width: '50%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-  },
-  otherIconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  otherItemLabel: {
+  entryCardTitle: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 15,
+    fontWeight: '700',
     color: COLORS.text,
-    lineHeight: 15,
   },
   navBar: {
     backgroundColor: '#FFFFFF',

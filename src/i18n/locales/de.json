@@ -19,6 +19,9 @@
     "other": "WEITERE RECHNER"
   },
   "tiles": {
+    "converter": "Umrechner",
+    "emiCalculator": "EMI-Rechner",
+    "otherCalculators": "Weitere Rechner",
     "currencyConverter": "Währungsrechner",
     "cryptoConverter": "Kryptowährungsrechner",
     "customRate": "Individueller Kurs",

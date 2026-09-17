@@ -19,6 +19,9 @@
     "other": "AUTRES CALCULATEURS"
   },
   "tiles": {
+    "converter": "Convertisseur",
+    "emiCalculator": "Calculateur EMI",
+    "otherCalculators": "Autres Calculateurs",
     "currencyConverter": "Convertisseur de Devises",
     "cryptoConverter": "Convertisseur de Cryptomonnaies",
     "customRate": "Taux Personnalisé",

@@ -19,6 +19,9 @@
     "other": "حاسبات أخرى"
   },
   "tiles": {
+    "converter": "المحول",
+    "emiCalculator": "حاسبة الأقساط",
+    "otherCalculators": "حاسبات أخرى",
     "currencyConverter": "محول العملات",
     "cryptoConverter": "محول العملات الرقمية",
     "customRate": "سعر مخصص",

@@ -19,6 +19,9 @@
     "other": "अन्य कैलकुलेटर"
   },
   "tiles": {
+    "converter": "कन्वर्टर",
+    "emiCalculator": "ईएमआई कैलकुलेटर",
+    "otherCalculators": "अन्य कैलकुलेटर",
     "currencyConverter": "करेंसी कन्वर्टर",
     "cryptoConverter": "क्रिप्टो करेंसी कन्वर्टर",
     "customRate": "कस्टम रेट",

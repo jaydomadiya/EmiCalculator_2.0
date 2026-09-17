@@ -19,6 +19,9 @@
     "other": "その他の計算機"
   },
   "tiles": {
+    "converter": "コンバーター",
+    "emiCalculator": "EMI計算機",
+    "otherCalculators": "その他の計算機",
     "currencyConverter": "通貨コンバーター",
     "cryptoConverter": "暗号通貨コンバーター",
     "customRate": "カスタムレート",

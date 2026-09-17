@@ -354,7 +354,7 @@ function OnboardingScreen({ onFinish }: Props) {
       </View>
 
       <View style={[styles.adSlot, { paddingBottom: insets.bottom }]}>
-        <NativeAdCard placement="tools" format="compact" />
+        <NativeAdCard placement="tools" />
       </View>
     </View>
   );

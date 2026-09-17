@@ -19,6 +19,9 @@
     "other": "其他计算器"
   },
   "tiles": {
+    "converter": "转换器",
+    "emiCalculator": "EMI 计算器",
+    "otherCalculators": "其他计算器",
     "currencyConverter": "货币转换器",
     "cryptoConverter": "加密货币转换器",
     "customRate": "自定义汇率",

@@ -23,11 +23,19 @@ import {
   calculateMortgagePayment,
   tenureToMonths,
 } from './src/utils/emi';
+import CategoryListScreen from './src/components/CategoryListScreen';
 import CryptoConverterScreen from './src/screens/CryptoConverterScreen';
 import ChartScreen from './src/screens/ChartScreen';
 import CurrencyConverterScreen from './src/screens/CurrencyConverterScreen';
 import CurrencyListScreen from './src/screens/CurrencyListScreen';
 import CustomRateScreen from './src/screens/CustomRateScreen';
+import {
+  CONVERTER_ITEMS,
+  EMI_CALCULATOR_ITEMS,
+  FINANCIAL_PLANNER_ITEMS,
+  INVESTMENT_ITEMS,
+  OTHER_CALCULATOR_ITEMS,
+} from './src/data/homeCategories';
 import HomeScreen, { ConverterTool } from './src/screens/HomeScreen';
 import HomeAffordabilityScreen from './src/screens/HomeAffordabilityScreen';
 import InvestmentCalculatorScreen from './src/screens/InvestmentCalculatorScreen';
@@ -61,6 +69,11 @@ type Screen =
   | 'home'
   | 'calculator'
   | 'result'
+  | 'converterList'
+  | 'emiCalculatorList'
+  | 'financialPlannerList'
+  | 'investmentList'
+  | 'otherCalculatorList'
   | 'currencyConverter'
   | 'cryptoConverter'
   | 'customRate'
@@ -130,7 +143,7 @@ const NO_FOOTER_NATIVE_AD_SCREENS = [
 ];
 
 function AppContent() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { registerInteraction } = useAds();
   const insets = useSafeAreaInsets();
   const didBootstrap = useRef(false);
@@ -220,6 +233,11 @@ function AppContent() {
           navigateBackAfterAd('loanComparison');
           return true;
         case 'calculator':
+        case 'converterList':
+        case 'emiCalculatorList':
+        case 'financialPlannerList':
+        case 'investmentList':
+        case 'otherCalculatorList':
         case 'currencyConverter':
         case 'cryptoConverter':
         case 'customRate':
@@ -391,6 +409,56 @@ function AppContent() {
       {screen === 'home' && (
         <HomeScreen
           onOpenLoanCalculator={handleOpenLoanCalculator}
+          onOpenConverterTool={handleOpenConverterTool}
+        />
+      )}
+      {screen === 'converterList' && (
+        <CategoryListScreen
+          title={t('tiles.converter')}
+          headerIcon="swap-horizontal-bold"
+          items={CONVERTER_ITEMS}
+          t={t}
+          onBack={() => handleBack('home')}
+          onOpenConverterTool={handleOpenConverterTool}
+        />
+      )}
+      {screen === 'emiCalculatorList' && (
+        <CategoryListScreen
+          title={t('tiles.emiCalculator')}
+          headerIcon="calculator-variant"
+          items={EMI_CALCULATOR_ITEMS}
+          t={t}
+          onBack={() => handleBack('home')}
+          onSelectLoanType={handleOpenLoanCalculator}
+        />
+      )}
+      {screen === 'financialPlannerList' && (
+        <CategoryListScreen
+          title={t('sections.financialPlanner')}
+          headerIcon="chart-areaspline"
+          items={FINANCIAL_PLANNER_ITEMS}
+          t={t}
+          onBack={() => handleBack('home')}
+          onOpenConverterTool={handleOpenConverterTool}
+        />
+      )}
+      {screen === 'investmentList' && (
+        <CategoryListScreen
+          title={t('sections.investment')}
+          headerIcon="chart-donut"
+          items={INVESTMENT_ITEMS}
+          t={t}
+          onBack={() => handleBack('home')}
+          onOpenConverterTool={handleOpenConverterTool}
+        />
+      )}
+      {screen === 'otherCalculatorList' && (
+        <CategoryListScreen
+          title={t('tiles.otherCalculators')}
+          headerIcon="calculator-variant-outline"
+          items={OTHER_CALCULATOR_ITEMS}
+          t={t}
+          onBack={() => handleBack('home')}
           onOpenConverterTool={handleOpenConverterTool}
         />
       )}
